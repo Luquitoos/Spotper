@@ -1,0 +1,120 @@
+<div
+    class="relative w-full max-w-[640px] bg-brushed-metal-light dark:bg-[#262626] rounded-xl shadow-2xl p-[2px] overflow-hidden animate-fade-in-up border border-border-light dark:border-white/5">
+
+    <div
+        class="h-2 w-full bg-wood-grain-light dark:bg-wood-grain absolute top-0 left-0 right-0 z-20 border-b border-black/10 dark:border-black/30">
+    </div>
+
+    <div
+        class="bg-parchment dark:bg-[#1a1a1a] w-full h-full rounded-lg pt-8 px-8 pb-8 border border-silver-dark/50 dark:border-white/5 shadow-inner flex flex-col gap-6 relative">
+
+        <button onclick="closeModal()"
+            class="absolute top-4 right-4 text-text-muted dark:text-gray-500 hover:text-primary transition-colors duration-200">
+            <span class="material-symbols-outlined text-2xl">close</span>
+        </button>
+
+        <div class="text-center space-y-2 mb-2">
+            <div
+                class="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-3 border border-primary/40 shadow-sm">
+                <span class="material-symbols-outlined text-primary dark:text-primary text-2xl">album</span>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-bold tracking-tight text-text-main dark:text-white font-display">Nova
+                Gravadora</h2>
+            <p class="text-text-muted dark:text-gray-500 text-sm font-mono uppercase tracking-widest">Registro de
+                Catálogo • Seção G-1</p>
+        </div>
+
+        <form class="flex flex-col gap-5" id="label-form" data-form-type="label">
+            <div class="flex flex-col gap-1.5 group">
+                <label for="label-nome"
+                    class="text-text-main dark:text-primary text-sm font-bold flex items-center gap-2 font-display">
+                    <span class="material-symbols-outlined text-base opacity-70">badge</span>
+                    Nome da Gravadora *
+                </label>
+                <input id="label-nome" name="nome"
+                    class="w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-[#262626] text-text-main dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:border-primary focus:ring-primary/30 h-11 px-3 shadow-sm font-display transition-all"
+                    placeholder="Ex: Deutsche Grammophon" type="text" required>
+            </div>
+
+            <div class="flex flex-col gap-1.5 group">
+                <label for="label-endereco"
+                    class="text-text-main dark:text-primary text-sm font-bold flex items-center gap-2 font-display">
+                    <span class="material-symbols-outlined text-base opacity-70">location_on</span>
+                    Endereço Físico
+                </label>
+                <input id="label-endereco" name="endereco"
+                    class="w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-[#262626] text-text-main dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:border-primary h-11 px-3 shadow-sm font-display"
+                    placeholder="Rua, Cidade, País..." type="text">
+            </div>
+
+            <div class="flex flex-col gap-1.5 group">
+                <label for="label-homepage"
+                    class="text-text-main dark:text-primary text-sm font-bold flex items-center gap-2 font-display">
+                    <span class="material-symbols-outlined text-base opacity-70">language</span>
+                    Página Inicial
+                </label>
+                <input id="label-homepage" name="homepage"
+                    class="w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-[#262626] text-text-main dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:border-primary h-11 px-3 shadow-sm font-mono text-sm"
+                    placeholder="https://www.label-website.com" type="url">
+            </div>
+
+            <!-- Multiple Phones Section -->
+            <div class="flex flex-col gap-2">
+                <div class="flex items-center justify-between">
+                    <label
+                        class="text-text-main dark:text-primary text-sm font-bold flex items-center gap-2 font-display">
+                        <span class="material-symbols-outlined text-base opacity-70">call</span>
+                        Telefones
+                    </label>
+                    <button type="button" id="add-phone-btn" onclick="addPhoneField()"
+                        class="text-xs font-mono text-primary hover:text-primary/80 flex items-center gap-1 transition-colors">
+                        <span class="material-symbols-outlined !text-[16px]">add</span>
+                        Adicionar
+                    </button>
+                </div>
+
+                <div id="phones-list" class="flex flex-col gap-3">
+                    <!-- Phone entry template -->
+                    <div class="phone-entry grid grid-cols-[1fr,auto,auto] gap-2 items-end" data-phone-index="0">
+                        <div class="flex flex-col gap-1">
+                            <input name="telefones[0].numero" type="tel"
+                                class="w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-[#262626] text-text-main dark:text-gray-200 placeholder:text-gray-400 h-10 px-3 shadow-sm font-mono text-sm"
+                                placeholder="+55 (11) 99999-0000">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <select name="telefones[0].tipo"
+                                class="rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-[#262626] text-text-main dark:text-gray-200 h-10 px-2 text-sm appearance-none">
+                                <option value="">Tipo</option>
+                                <option value="Fixo">Fixo</option>
+                                <option value="Celular">Celular</option>
+                                <option value="WhatsApp">WhatsApp</option>
+                                <option value="Comercial">Comercial</option>
+                            </select>
+                        </div>
+                        <button type="button" onclick="removePhoneField(this)"
+                            class="h-10 w-10 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors opacity-50 pointer-events-none first-phone-btn">
+                            <span class="material-symbols-outlined !text-[18px]">close</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="h-px w-full bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-700 to-transparent my-2">
+            </div>
+
+            <div class="flex items-center justify-end gap-4">
+                <button type="button" onclick="closeModal()"
+                    class="text-sm font-bold text-text-muted dark:text-gray-500 hover:text-text-main dark:hover:text-gray-300 uppercase tracking-widest px-4 py-2 transition-colors">
+                    Cancelar
+                </button>
+                <button type="submit"
+                    class="bg-gradient-to-b from-[#f4c025] to-[#b58d17] text-[#181611] rounded px-8 py-2.5 text-sm font-bold uppercase tracking-wider shadow-lg hover:brightness-110 active:scale-95 transition-all border border-primary/50 flex items-center gap-2">
+                    <span>Cadastrar Gravadora</span>
+                    <span class="material-symbols-outlined text-lg">check_circle</span>
+                </button>
+            </div>
+        </form>
+    </div>
+    <div class="absolute bottom-0 left-0 right-0 h-px bg-white/20 z-20 pointer-events-none"></div>
+</div>

@@ -1,0 +1,143 @@
+<div class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8">
+  <div class="absolute inset-0 bg-black/70 dark:bg-black/70 bg-white/60 backdrop-blur-md" onclick="closeModal()"></div>
+
+  <div
+    class="relative w-full max-w-6xl h-[85vh] bg-panel-light dark:bg-[#1c1914] rounded-xl shadow-2xl border border-border-light dark:border-[#393528] flex flex-col md:flex-row overflow-hidden ring-1 ring-black/5 dark:ring-white/5 animate-in fade-in zoom-in duration-300">
+
+    <button onclick="closeModal()"
+      class="absolute top-4 right-4 z-50 p-2 text-ink-muted dark:text-[#6d6655] hover:text-ink-main dark:hover:text-white bg-white/50 dark:bg-black/50 hover:bg-white/80 dark:hover:bg-black/80 rounded-full transition-all border border-border-light dark:border-transparent hover:border-ink-muted/20 dark:hover:border-white/20 shadow-sm">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+
+    <div
+      class="w-full md:w-5/12 border-r border-border-light dark:border-[#393528] flex flex-col bg-background-light dark:bg-[#12100c] relative">
+
+      <div
+        class="h-16 shrink-0 border-b border-border-light dark:border-[#393528] flex items-center justify-between px-6 bg-brushed-metal">
+        <span
+          class="text-ink-muted dark:text-[#8e8672] font-mono text-xs tracking-widest uppercase flex items-center gap-2">
+          <span class="material-symbols-outlined !text-[16px]">library_music</span>
+          Biblioteca de Álbuns
+        </span>
+        <span id="playlist-albums-count" class="text-ink-main dark:text-[#4a4436] font-mono text-[10px] font-bold">0
+          ÁLBUNS</span>
+      </div>
+
+      <!-- Album Grid -->
+      <div class="flex-1 overflow-y-auto p-6 bg-background-light dark:bg-[#12100c]">
+        <div id="playlist-albums-grid" class="grid grid-cols-2 gap-4">
+          <div
+            class="col-span-2 flex items-center justify-center py-12 text-ink-muted dark:text-[#6d6655] font-mono text-xs">
+            Carregando álbuns...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="w-full md:w-7/12 flex flex-col bg-panel-light dark:bg-[#181611] relative">
+
+      <!-- Header with Title and Stats -->
+      <div
+        class="h-44 shrink-0 bg-wood-grain-light dark:bg-wood-grain relative flex items-center px-8 justify-between border-b border-border-light dark:border-[#393528] shadow-lg z-20">
+        <div class="absolute inset-0 bg-white/10 dark:bg-black/30 mix-blend-overlay dark:mix-blend-multiply"></div>
+        <div class="absolute inset-x-0 bottom-0 h-px bg-black/5 dark:bg-white/5"></div>
+
+        <div class="relative z-10 flex flex-col">
+          <div class="group cursor-text relative">
+            <input id="playlist-name-input" name="nome"
+              class="text-ink-main dark:text-white font-display text-2xl font-bold tracking-wide bg-transparent border-b border-transparent group-hover:border-ink-muted/20 dark:group-hover:border-white/20 focus:border-primary focus:outline-none transition-colors inline-block min-w-[200px] pb-1"
+              placeholder="Nome da Nova Playlist" required>
+            <span
+              class="material-symbols-outlined text-ink-muted dark:text-[#8e8672] group-hover:text-primary !text-[18px] absolute -right-6 top-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">edit</span>
+          </div>
+          <div class="flex items-center gap-2 mt-2">
+            <span class="size-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"></span>
+            <p class="text-ink-muted dark:text-[#8e8672] font-mono text-[10px] uppercase tracking-widest font-bold">
+              Modo Criação</p>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="relative z-10 flex gap-8">
+          <!-- Total Time -->
+          <div class="flex flex-col items-center gap-2">
+            <div
+              class="size-24 rounded-full border-4 border-border-light dark:border-[#2a2620] bg-background-light dark:bg-[#12100c] shadow-[inset_0_2px_6px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_4px_8px_rgba(0,0,0,0.8),0_2px_4px_rgba(255,255,255,0.05)] flex items-center justify-center relative group">
+              <svg class="absolute inset-0 size-full -rotate-90 p-1" viewBox="0 0 88 88">
+                <circle cx="44" cy="44" r="38" fill="none" stroke="#dcd9ce" class="dark:stroke-[#23201a]"
+                  stroke-width="3"></circle>
+                <circle id="playlist-time-progress" cx="44" cy="44" r="38" fill="none" stroke="#b58d17"
+                  class="dark:stroke-primary drop-shadow-[0_0_4px_rgba(181,141,23,0.3)] dark:drop-shadow-[0_0_8px_rgba(244,192,37,0.4)]"
+                  stroke-width="3" stroke-dasharray="238" stroke-dashoffset="238"></circle>
+              </svg>
+              <div class="flex flex-col items-center">
+                <span id="playlist-total-time"
+                  class="font-mono text-xl text-ink-main dark:text-primary font-bold amber-text-glow leading-none">00:00</span>
+                <span class="text-[8px] text-ink-muted dark:text-[#6d6655] font-mono mt-0.5">MINS</span>
+              </div>
+            </div>
+            <span
+              class="text-[9px] font-mono text-ink-muted dark:text-[#6d6655] tracking-[0.2em] uppercase font-bold">Tempo
+              Total</span>
+          </div>
+
+          <!-- Track Count -->
+          <div class="flex flex-col items-center gap-2">
+            <div
+              class="h-24 w-20 bg-background-light dark:bg-[#12100c] border border-border-light dark:border-[#393528] rounded-lg shadow-[inset_0_2px_6px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center relative overflow-hidden">
+              <span id="playlist-track-count"
+                class="font-mono text-4xl text-ink-main dark:text-primary amber-text-glow leading-none z-10">00</span>
+            </div>
+            <span
+              class="text-[9px] font-mono text-ink-muted dark:text-[#6d6655] tracking-[0.2em] uppercase font-bold">Qtd</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Track List -->
+      <div class="flex-1 bg-panel-light dark:bg-[#1a1814] overflow-y-auto relative">
+        <!-- Header -->
+        <div
+          class="sticky top-0 bg-background-light/95 dark:bg-[#23201a]/95 backdrop-blur border-b border-border-light dark:border-[#393528] flex text-[10px] font-mono text-ink-muted dark:text-[#8e8672] uppercase tracking-wider py-2 px-6 z-10 shadow-sm dark:shadow-lg">
+          <div class="w-10 text-center">Nº</div>
+          <div class="flex-1 pl-4">Seleção</div>
+          <div class="w-20 text-right pr-4">Dur.</div>
+          <div class="w-8"></div>
+        </div>
+
+        <!-- Track Items -->
+        <div id="playlist-selected-tracks" class="flex flex-col divide-y divide-border-light dark:divide-[#2a2620]">
+          <div class="flex items-center justify-center py-8 opacity-40">
+            <span
+              class="text-ink-muted dark:text-[#6d6655] font-mono text-xs uppercase tracking-widest border border-dashed border-ink-muted/50 dark:border-[#6d6655] px-4 py-2 rounded">Selecione
+              faixas da biblioteca</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Actions -->
+      <div
+        class="h-20 shrink-0 bg-background-light dark:bg-[#12100c] border-t border-border-light dark:border-[#393528] flex items-center justify-between px-8 z-20">
+        <div class="flex items-center gap-2 text-ink-muted dark:text-[#6d6655]">
+          <span class="material-symbols-outlined !text-[16px]">info</span>
+          <span class="text-[10px] font-mono uppercase tracking-wider">Salvamento automático ativo</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <button type="button" onclick="closeModal()"
+            class="text-ink-muted dark:text-[#8e8672] hover:text-ink-main dark:hover:text-white font-mono text-xs uppercase tracking-widest transition-colors px-4 py-2 hover:bg-black/5 dark:hover:bg-white/5 rounded">Descartar</button>
+          <button type="button" id="playlist-save-btn"
+            class="relative overflow-hidden bg-gradient-to-b from-[#f4c025] to-[#b58d17] text-[#181611] font-bold font-mono text-sm tracking-wider px-8 py-3 rounded shadow-amber-glow hover:brightness-110 active:scale-95 transition-all group border border-amber-600/20">
+            <span class="relative z-10 flex items-center gap-2">
+              SALVAR PLAYLIST
+              <span class="material-symbols-outlined !text-[18px]">save</span>
+            </span>
+            <div
+              class="absolute inset-0 bg-white/30 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+            </div>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

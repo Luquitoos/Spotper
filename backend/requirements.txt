@@ -1,0 +1,6 @@
+# Dependências do Backend SpotPer
+# Instalar com: pip install -r requirements.txt
+
+flask
+flask-cors
+pyodbc

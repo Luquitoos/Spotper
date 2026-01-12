@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>SpotPer Player: Digital Media Box</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Noto+Sans:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries,typography"></script>
+  <script id="tailwind-config">
+    tailwind.config = { theme: { extend: { colors: { "primary": "#f4c025", "primary-dark": "#b48d16", "background-light": "#f8f8f5", "background-dark": "#121212", "chassis": "#1c1c1c", "wood": "#4a3728", "glass": "rgba(255, 255, 255, 0.03)", "glass-border": "rgba(255, 255, 255, 0.08)" }, fontFamily: { "display": ["Noto Serif", "serif"], "sans": ["Inter", "sans-serif"], "mono": ["Noto Sans", "monospace"] }, boxShadow: { 'glow': '0 0 20px rgba(244, 192, 37, 0.25)', 'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.1)' }, backgroundImage: { 'glass-gradient': 'linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(240, 240, 240, 0.4) 100%)' } } } }
+  </script>
+  <style>
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #e0e0e0;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #bbb;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #999;
+    }
+
+    .backdrop-blur-xl {
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+  </style>
+</head>
+
+<body class="bg-[#f0f0ed] min-h-screen flex flex-col font-sans selection:bg-primary/30 text-[#1a1712]">
+</body>
+
+</html>

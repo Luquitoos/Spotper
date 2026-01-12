@@ -1,0 +1,101 @@
+<div
+  class="relative w-full max-w-4xl max-h-[90vh] flex flex-col bg-silver-frame dark:bg-[linear-gradient(135deg,_#4a4a4a_0%,_#2b2b2b_50%,_#1f1f1f_100%)] p-[4px] dark:p-[1px] rounded-lg shadow-2xl overflow-hidden ring-1 ring-black/10 dark:ring-white/10">
+  <div class="flex flex-col w-full h-full bg-ivory dark:bg-[#232323] rounded-[4px] overflow-hidden">
+
+    <!-- Header -->
+    <div class="flex flex-col border-b border-[#e5e5e0] dark:border-[#333333] relative">
+      <div class="absolute top-4 right-4 z-20">
+        <button onclick="closeModal()"
+          class="flex items-center justify-center size-8 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-[#181611] dark:text-[#f0ebe0]/70 hover:text-primary transition-colors cursor-pointer group">
+          <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">close</span>
+        </button>
+      </div>
+
+      <div class="p-8 pb-6 flex gap-6 items-end bg-gradient-to-b from-white/50 dark:from-white/5 to-transparent">
+        <!-- Playlist Cover -->
+        <div
+          class="size-40 shrink-0 shadow-lg dark:shadow-2xl rounded-sm relative overflow-hidden group ring-1 ring-black/10 dark:ring-white/10">
+          <div id="playlist-details-cover"
+            class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105 bg-oak dark:bg-black/30 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[#8a8060] dark:text-white/90 text-5xl">queue_music</span>
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+          <span class="material-symbols-outlined absolute bottom-2 right-2 text-white drop-shadow-md">music_note</span>
+        </div>
+
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <span
+            class="text-[#8a8060] dark:text-[#deb853] text-sm uppercase tracking-widest font-sans font-bold">Playlist</span>
+          <h2 id="playlist-details-title"
+            class="text-[#181611] dark:text-[#f0ebe0] text-5xl font-black leading-tight tracking-[-0.02em] drop-shadow-sm break-words">
+            Favoritos Barrocos</h2>
+
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
+            <p
+              class="text-[#5c5540] dark:text-[#ffbf00] text-sm font-mono bg-oak/30 dark:bg-amber-950/30 px-2 py-1 rounded border border-oak/50 dark:border-amber-900/40">
+              Criada: <span id="playlist-details-created">2023-10-12</span>
+            </p>
+            <span class="text-[#8a8060] dark:text-[#deb853]/50 text-sm">•</span>
+            <p id="playlist-details-duration" class="text-[#5c5540] dark:text-[#ffbf00] text-sm">2h 14min</p>
+            <span class="text-[#8a8060] dark:text-[#deb853]/50 text-sm">•</span>
+            <p class="text-[#5c5540] dark:text-[#ffbf00] text-sm"><span id="playlist-details-track-count">34</span>
+              Faixas</p>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="px-8 py-4 flex items-center justify-between bg-white/40 dark:bg-black/20 border-t border-[#e5e5e0] dark:border-white/5">
+        <div class="flex gap-3">
+          <button
+            class="flex items-center gap-2 px-6 h-10 bg-gold-gradient text-white shadow-md dark:shadow-[0_2px_10px_rgba(218,165,32,0.3)] rounded-full text-sm font-bold tracking-wide hover:shadow-lg hover:brightness-105 transition-all active:scale-95">
+            <span class="material-symbols-outlined fill text-[20px]">play_arrow</span>
+            <span>Reproduzir Tudo</span>
+          </button>
+        </div>
+
+        <div class="flex gap-2">
+          <button onclick="openModal('track')"
+            class="flex items-center gap-2 px-5 h-10 rounded-full border border-[#d0d0d0] dark:border-white/10 bg-white/50 dark:bg-white/5 text-[#5c5540] dark:text-[#f0ebe0]/80 hover:text-[#181611] dark:hover:text-white hover:bg-white dark:hover:bg-white/10 transition-colors text-sm font-bold">
+            <span class="material-symbols-outlined text-[18px]">add</span>
+            Adicionar Faixa
+          </button>
+          <button
+            class="flex items-center gap-2 px-5 h-10 rounded-full border border-[#d0d0d0] dark:border-white/10 bg-white/50 dark:bg-white/5 text-[#5c5540] dark:text-[#f0ebe0]/80 hover:text-[#181611] dark:hover:text-white hover:bg-white dark:hover:bg-white/10 transition-colors text-sm font-bold"
+            onclick="openModalForEdit('playlist', currentPlaylistId)">
+            <span class="material-symbols-outlined text-[18px]">edit</span>
+            Editar Playlist
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto px-8 py-4 bg-ivory dark:bg-[#1a1a1a]">
+      <table class="w-full text-left border-collapse">
+        <thead
+          class="sticky top-0 bg-ivory dark:bg-[#1a1a1a] z-10 shadow-[0_1px_0_0_#e5e5e0] dark:shadow-[0_1px_0_0_#333]">
+          <tr class="text-[#8a8060] dark:text-[#deb853] text-xs uppercase tracking-wider font-sans">
+            <th class="pb-3 pl-2 font-medium w-12 text-center">Nº</th>
+            <th class="pb-3 font-medium">Título & Compositor</th>
+            <th class="pb-3 font-medium w-48">Última Reprodução</th>
+            <th class="pb-3 font-medium text-right w-24">Plays</th>
+            <th class="pb-3 pr-2 font-medium w-16 text-center">Ação</th>
+          </tr>
+        </thead>
+        <tbody id="playlist-details-tracks" class="divide-y divide-[#ebe6dc] dark:divide-white/5">
+          <!-- Populated dynamically by JS from API -->
+        </tbody>
+      </table>
+
+      <div id="playlist-details-empty" class="hidden py-10 text-center text-[#8a8060] dark:text-[#f0ebe0]/60">
+        Nenhuma faixa na playlist. Use <span class="font-mono text-primary">Adicionar Faixa</span>.
+      </div>
+
+      <div class="h-12 w-full flex items-center justify-center mt-8 opacity-40 dark:opacity-20">
+        <div class="h-px w-24 bg-[#8a8060] dark:bg-[#deb853]"></div>
+        <div class="mx-2 size-2 rounded-full border border-[#8a8060] dark:border-[#deb853]"></div>
+        <div class="h-px w-24 bg-[#8a8060] dark:bg-[#deb853]"></div>
+      </div>
+    </div>
+  </div>
+</div>

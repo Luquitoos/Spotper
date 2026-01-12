@@ -1,0 +1,246 @@
+<div class="relative w-full max-w-3xl mx-auto">
+  <div class="relative w-full silver-frame dark:charcoal-frame rounded-xl p-[2px]">
+    <div
+      class="bg-parchment dark:bg-[#1c1a17] w-full h-full rounded-[10px] oak-trim dark:walnut-trim shadow-inner flex flex-col relative overflow-hidden">
+      <!-- Close -->
+      <button onclick="closeModal()"
+        class="absolute top-4 right-4 text-[#8a8060] hover:text-[#181611] dark:hover:text-[#d4af37] transition-colors z-10">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+
+      <!-- Header -->
+      <div class="px-10 pt-10 pb-2 text-center">
+        <h2
+          class="text-[#181611] dark:text-[#e6e3db] tracking-tight text-3xl font-bold leading-tight relative inline-block">
+          Adicionar Nova Faixa
+          <div
+            class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-60 dark:opacity-80">
+          </div>
+        </h2>
+        <p class="text-[#8a8060] dark:text-[#9ca3af] text-sm mt-3 font-medium">Preencha os detalhes da composição
+          clássica</p>
+      </div>
+
+      <div id="track-validation-alerts" class="px-10 hidden">
+        <!-- Barroco DDD Alert -->
+        <div id="track-alert-barroco-ddd"
+          class="hidden mb-4 p-3 rounded-lg bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200 text-sm flex items-center gap-2">
+          <span class="material-symbols-outlined !text-[18px]">warning</span>
+          <span><strong>Atenção:</strong> Faixas de compositores do período Barroco devem obrigatoriamente ter gravação
+            <strong>DDD</strong>.</span>
+        </div>
+        <!-- 64 Tracks Limit Alert -->
+        <div id="track-alert-limit"
+          class="hidden mb-4 p-3 rounded-lg bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 text-red-800 dark:text-red-200 text-sm flex items-center gap-2">
+          <span class="material-symbols-outlined !text-[18px]">error</span>
+          <span><strong>Limite atingido:</strong> Este álbum já possui 64 faixas (máximo permitido).</span>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="px-10 py-6 overflow-y-auto max-h-[70vh]">
+        <form id="track-form" data-form-type="track" class="flex flex-col gap-6">
+          <!-- Número da Unidade e Faixa -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <label
+                class="block text-[#5c5542] dark:text-[#d4af37] text-sm font-semibold tracking-wide uppercase mb-2">
+                Nº Unidade (CD/Vinil)
+              </label>
+              <div class="relative">
+                <select name="numero_unidade" id="track-numero-unidade"
+                  class="w-full appearance-none bg-white dark:bg-[#262626] border border-[#e6e3db] dark:border-[#444] rounded-lg px-4 py-3 pr-10 text-[#181611] dark:text-parchment-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary cursor-pointer text-base">
+                  <option value="1">Unidade 1</option>
+                  <!-- More options added dynamically based on album qtd_unidades -->
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#8a8060]">
+                  <span class="material-symbols-outlined text-[18px]">expand_more</span>
+                </div>
+              </div>
+              <p class="text-xs text-[#8a8060]">Para álbuns multi-CD/Vinil</p>
+            </div>
+            <div class="space-y-1">
+              <label
+                class="block text-[#5c5542] dark:text-[#d4af37] text-sm font-semibold tracking-wide uppercase mb-2">
+                Nº da Faixa *
+              </label>
+              <div class="relative">
+                <input name="numero_faixa" id="track-numero-faixa" type="number" min="1" max="64"
+                  class="w-full bg-white dark:bg-[#262626] border border-[#e6e3db] dark:border-[#444] rounded-lg px-4 py-3 text-[#181611] dark:text-parchment-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-lg font-mono"
+                  placeholder="1" required />
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a8060] text-sm font-mono">/ 64</span>
+              </div>
+              <p id="track-next-number-hint" class="text-xs text-primary">Próximo disponível: 1</p>
+            </div>
+          </div>
+
+          <!-- Descrição da Faixa -->
+          <div class="space-y-1">
+            <label
+              class="block text-[#5c5542] dark:text-[#d4af37] text-sm font-semibold tracking-wide uppercase mb-2">Descrição
+              da Faixa *</label>
+            <input name="descricao"
+              class="w-full bg-white dark:bg-[#262626] border border-[#e6e3db] dark:border-[#444] rounded-lg px-4 py-3 text-[#181611] dark:text-parchment-white placeholder:text-[#8a8060]/60 dark:placeholder:text-[#666] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary dark:focus:ring-1 dark:focus:ring-primary dark:focus:border-primary transition-shadow text-lg"
+              placeholder="Ex: Sonata para Piano Nº 14 em Dó sustenido menor" type="text" required />
+          </div>
+
+          <!-- Tipo Composição & Tipo Gravação -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-1">
+              <label
+                class="block text-[#5c5542] dark:text-[#d4af37] text-sm font-semibold tracking-wide uppercase mb-2">Tipo
+                de Composição *</label>
+              <div class="relative">
+                <select name="cod_tipo_composicao" id="track-tipo-composicao"
+                  class="w-full appearance-none bg-white dark:bg-[#262626] border border-[#e6e3db] dark:border-[#444] rounded-lg px-4 py-3 pr-10 text-[#181611] dark:text-parchment-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-1 dark:focus:ring-primary focus:border-primary cursor-pointer text-base"
+                  required>
+                  <option disabled selected value="">Selecione o tipo...</option>
+                  <!-- Populated by JS -->
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#8a8060]">
+                  <span class="material-symbols-outlined">expand_more</span>
+                </div>
+              </div>
+            </div>
+            <div class="space-y-1">
+              <label
+                class="block text-[#5c5542] dark:text-[#d4af37] text-sm font-semibold tracking-wide uppercase mb-2">
+                Tipo de Gravação
+                <span id="track-gravacao-hint" class="text-xs font-normal text-[#8a8060]">(obrigatório para CD)</span>
+              </label>
+              <div id="track-gravacao-container"
+                class="flex bg-[#f0eee6] dark:bg-[#0f0f0f] p-1 rounded-lg h-[50px] items-center border border-transparent dark:border-[#333] dark:shadow-inner">
+                <label class="flex-1 text-center cursor-pointer">
+                  <input class="peer sr-only" name="tipo_gravacao" type="radio" value="ADD" />
+                  <span
+                    class="block py-2 text-sm font-medium text-[#8a8060] dark:text-[#777] peer-checked:bg-white dark:peer-checked:bg-gradient-to-b dark:peer-checked:from-[#d4af37] dark:peer-checked:to-[#b08d26] peer-checked:text-[#181611] dark:peer-checked:text-[#1a1814] peer-checked:shadow-sm dark:peer-checked:shadow-[0_2px_4px_rgba(0,0,0,0.4)] rounded transition-all">ADD</span>
+                </label>
+                <label class="flex-1 text-center cursor-pointer">
+                  <input class="peer sr-only" name="tipo_gravacao" type="radio" value="DDD" checked />
+                  <span
+                    class="block py-2 text-sm font-medium text-[#8a8060] dark:text-[#777] peer-checked:bg-white dark:peer-checked:bg-gradient-to-b dark:peer-checked:from-[#d4af37] dark:peer-checked:to-[#b08d26] peer-checked:text-[#181611] dark:peer-checked:text-[#1a1814] peer-checked:shadow-sm dark:peer-checked:shadow-[0_2px_4px_rgba(0,0,0,0.4)] rounded transition-all">DDD</span>
+                </label>
+                <label id="track-gravacao-none" class="flex-1 text-center cursor-pointer hidden">
+                  <input class="peer sr-only" name="tipo_gravacao" type="radio" value="" />
+                  <span
+                    class="block py-2 text-sm font-medium text-[#8a8060] dark:text-[#777] peer-checked:bg-white dark:peer-checked:bg-gradient-to-b dark:peer-checked:from-[#d4af37] dark:peer-checked:to-[#b08d26] peer-checked:text-[#181611] dark:peer-checked:text-[#1a1814] peer-checked:shadow-sm dark:peer-checked:shadow-[0_2px_4px_rgba(0,0,0,0.4)] rounded transition-all">Nenhum</span>
+                </label>
+              </div>
+              <p id="track-gravacao-info" class="text-xs text-[#8a8060] mt-1 hidden">
+                <span class="material-symbols-outlined !text-[14px] align-middle">info</span>
+                VINIL e DOWNLOAD não possuem tipo de gravação.
+              </p>
+            </div>
+          </div>
+
+          <!-- Compositores -->
+          <div class="space-y-1">
+            <label
+              class="block text-[#5c5542] dark:text-[#d4af37] text-sm font-semibold tracking-wide uppercase mb-2">Compositores
+              *</label>
+            <div
+              class="bg-white dark:bg-[#262626] border border-[#e6e3db] dark:border-[#444] rounded-lg p-2 focus-within:ring-2 focus-within:ring-primary/50 dark:focus-within:ring-1 dark:focus-within:ring-primary focus-within:border-primary transition-shadow">
+              <div id="track-composers-chips" class="flex flex-wrap gap-2 mb-2">
+                <!-- Chips populated by JS -->
+              </div>
+              <div class="relative">
+                <select id="track-composer-select"
+                  class="w-full bg-transparent border-none p-2 text-[#181611] dark:text-parchment-white focus:ring-0 text-base">
+                  <option value="">Selecionar compositor...</option>
+                  <!-- Populated by JS -->
+                </select>
+              </div>
+            </div>
+            <p id="track-composer-barroco-warn" class="text-xs text-amber-600 dark:text-amber-400 mt-1 hidden">
+              <span class="material-symbols-outlined !text-[14px] align-middle">warning</span>
+              Compositor do período Barroco selecionado - gravação DDD será obrigatória.
+            </p>
+          </div>
+
+          <!-- Intérpretes -->
+          <div class="space-y-1">
+            <label
+              class="block text-[#5c5542] dark:text-[#d4af37] text-sm font-semibold tracking-wide uppercase mb-2">Intérpretes</label>
+            <div
+              class="bg-white dark:bg-[#262626] border border-[#e6e3db] dark:border-[#444] rounded-lg p-2 focus-within:ring-2 focus-within:ring-primary/50 dark:focus-within:ring-1 dark:focus-within:ring-primary transition-shadow">
+              <div id="track-interpreters-chips" class="flex flex-wrap gap-2 mb-2">
+                <!-- Chips populated by JS -->
+              </div>
+              <div class="relative">
+                <select id="track-interpreter-select"
+                  class="w-full bg-transparent border-none p-2 text-[#181611] dark:text-parchment-white focus:ring-0 text-base">
+                  <option value="">Selecionar intérprete...</option>
+                  <!-- Populated by JS -->
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tempo de Execução -->
+          <div class="space-y-1">
+            <label
+              class="block text-[#5c5542] dark:text-[#d4af37] text-sm font-semibold tracking-wide uppercase mb-2">Tempo
+              de Execução *</label>
+            <div class="relative w-40">
+              <span
+                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#8a8060] dark:text-[#8a8060] text-[20px]">schedule</span>
+              <input name="tempo_execucao"
+                class="w-full bg-white dark:bg-[#262626] border border-[#e6e3db] dark:border-[#444] rounded-lg pl-10 pr-4 py-3 text-[#181611] dark:text-parchment-white placeholder:text-[#8a8060]/60 dark:placeholder:text-[#666] focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-1 dark:focus:ring-primary focus:border-primary transition-all font-medium text-lg tracking-wider"
+                placeholder="MM:SS" type="text" required pattern="[0-9]{1,3}:[0-5][0-9]" />
+            </div>
+            <p class="text-xs text-[#8a8060]">Formato: minutos:segundos (ex: 4:32, 12:05)</p>
+          </div>
+
+          <!-- Hidden: Album ID -->
+          <input type="hidden" name="cod_album" id="track-album-id" value="">
+        </form>
+      </div>
+
+      <!-- Footer -->
+      <div
+        class="px-10 py-6 mt-auto border-t border-[#e6e3db]/60 dark:border-[#333] flex items-center justify-end gap-6 bg-[#fdfbf7] dark:bg-[#151310]">
+        <button onclick="closeModal()"
+          class="text-[#5c5542] dark:text-[#9ca3af] hover:text-[#181611] dark:hover:text-[#e6e3db] font-medium text-base hover:underline underline-offset-4 decoration-primary/50 transition-all">Cancelar</button>
+        <button id="track-submit-btn"
+          class="relative group bg-gradient-to-br from-primary via-[#e5b015] to-[#cfa015] text-[#3d2f0a] dark:text-[#1a1814] font-bold text-base px-8 py-3 rounded-md shadow-metallic dark:shadow-[0_4px_15px_rgba(212,175,55,0.3)] hover:shadow-lg dark:hover:shadow-[0_6px_20px_rgba(212,175,55,0.4)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 overflow-hidden border border-yellow-400/40"
+          type="submit" form="track-form">
+          <span class="relative z-10 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[20px]">add_circle</span>
+            ADICIONAR FAIXA
+          </span>
+          <div
+            class="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 group-hover:animate-[shimmer_1s_infinite]">
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes shimmer {
+    100% {
+      left: 125%;
+    }
+  }
+
+  .silver-frame {
+    background: linear-gradient(135deg, #eef1f5 0%, #bcc1c7 50%, #eef1f5 100%);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .charcoal-frame {
+    background: linear-gradient(135deg, #4a4a4a 0%, #2a2a2a 50%, #4a4a4a 100%);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 15px 30px rgba(0, 0, 0, 0.4);
+    border: 1px solid #555;
+  }
+
+  .oak-trim {
+    border: 4px solid #dcd3c0;
+  }
+
+  .walnut-trim {
+    border-image: linear-gradient(to bottom right, #6d4c41, #3e2723) 1;
+    border: 4px solid #4e342e;
+  }
+</style>

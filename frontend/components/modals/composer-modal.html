@@ -1,0 +1,84 @@
+<div class="relative w-full max-w-2xl bg-panel-light dark:bg-panel-dark rounded-lg shadow-2xl overflow-hidden border border-border-light dark:border-[#5a5445] flex flex-col animate-in fade-in zoom-in-95 duration-300">
+    
+    <div class="h-4 bg-wood-grain border-b border-black/10 dark:border-[#393528] relative z-10 shadow-sm w-full"></div>
+
+    <div class="relative z-10 p-8 md:p-10 flex flex-col gap-8">
+        <div class="flex items-center justify-between border-b border-border-light dark:border-[#393528] pb-6">
+            <div class="flex flex-col gap-1">
+                <h2 class="text-3xl text-text-main dark:text-off-white font-display italic tracking-wide">Register New Composer</h2>
+                <p class="text-text-muted dark:text-[#8e8672] text-xs font-mono uppercase tracking-widest">Database Entry Form • Ref: C-2024</p>
+            </div>
+            <div class="size-12 rounded-full border border-border-light dark:border-[#393528] bg-white dark:bg-[#12100c] flex items-center justify-center shadow-inner-bevel">
+                <span class="material-symbols-outlined text-primary amber-text-glow !text-[28px]">person_add</span>
+            </div>
+        </div>
+
+        <form class="flex flex-col gap-6" id="composer-form" data-form-type="composer">
+            <div class="flex flex-col gap-2 group">
+                <label for="composer-nome" class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Full Name *</label>
+                <input id="composer-nome" name="nome" 
+                       class="w-full bg-[#fbfaf8] dark:bg-[#e4e2d5] text-[#181611] font-display text-xl px-4 py-3 rounded-[2px] shadow-soft-inner border border-stone-300 dark:border-[#8e8672] focus:border-primary focus:ring-1 focus:ring-primary/50 focus:outline-none placeholder-stone-400 transition-all" 
+                       placeholder="e.g. Johann Sebastian Bach" type="text" required>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+                <div class="flex flex-col gap-2 group">
+                    <label for="composer-cidade" class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">City</label>
+                    <input id="composer-cidade" name="cidade_nascimento" 
+                           class="w-full bg-[#fbfaf8] dark:bg-[#e4e2d5] text-[#181611] font-display text-lg px-4 py-2.5 rounded-[2px] shadow-soft-inner border border-stone-300 dark:border-[#8e8672] focus:border-primary focus:outline-none" 
+                           placeholder="Eisenach" type="text">
+                </div>
+                <div class="flex flex-col gap-2 group">
+                    <label for="composer-pais" class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Country</label>
+                    <input id="composer-pais" name="pais_nascimento" 
+                           class="w-full bg-[#fbfaf8] dark:bg-[#e4e2d5] text-[#181611] font-display text-lg px-4 py-2.5 rounded-[2px] shadow-soft-inner border border-stone-300 dark:border-[#8e8672] focus:border-primary focus:outline-none" 
+                           placeholder="Germany" type="text">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="flex flex-col gap-2">
+                    <label for="composer-nascimento" class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Date of Birth *</label>
+                    <input id="composer-nascimento" name="data_nascimento" 
+                           class="w-full bg-[#fbfaf8] dark:bg-[#e4e2d5] text-[#181611] font-mono text-sm px-4 py-2.5 rounded-[2px] border border-stone-300 dark:border-[#8e8672] focus:border-primary focus:outline-none uppercase" 
+                           type="date" required>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <div class="flex justify-between items-baseline">
+                        <label for="composer-morte" class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Date of Death</label>
+                        <span class="text-text-muted dark:text-[#8e8672] text-[9px] font-mono uppercase opacity-70">Optional</span>
+                    </div>
+                    <input id="composer-morte" name="data_morte" 
+                           class="w-full bg-[#fbfaf8] dark:bg-[#e4e2d5] text-[#181611] font-mono text-sm px-4 py-2.5 rounded-[2px] border border-stone-300 dark:border-[#8e8672] focus:border-primary focus:outline-none uppercase" 
+                           type="date">
+                </div>
+                <div class="flex flex-col gap-2 relative">
+                    <label for="composer-periodo" class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Period *</label>
+                    <div class="relative group">
+                        <select id="composer-periodo" name="cod_periodo" 
+                                id="period-select"
+                                class="w-full bg-[#fbfaf8] dark:bg-[#e4e2d5] text-[#181611] font-display text-lg px-4 py-2.5 rounded-[2px] border border-stone-300 dark:border-[#8e8672] focus:border-primary focus:outline-none appearance-none cursor-pointer" 
+                                required>
+                            <option value="">Selecione um período</option>
+                        </select>
+                        <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-main group-hover:text-primary transition-colors">
+                            <span class="material-symbols-outlined">arrow_drop_down</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="relative z-10 px-10 py-6 bg-white/50 dark:bg-[#12100c]/80 border-t border-border-light dark:border-[#393528] flex justify-end gap-4 backdrop-blur-sm">
+        <button onclick="closeModal()" class="px-8 py-3 rounded-[2px] border border-border-light dark:border-[#393528] text-text-muted dark:text-[#8e8672] font-mono text-xs font-bold tracking-widest hover:text-text-main dark:hover:text-[#e4e2d5] transition-all uppercase">
+            Cancel
+        </button>
+        <button type="submit" form="composer-form" class="px-8 py-3 rounded-[2px] bg-gradient-to-b from-[#f4c025] to-[#b58d17] text-[#181611] font-mono text-xs font-bold tracking-widest shadow-amber-glow hover:brightness-110 active:translate-y-px transition-all uppercase flex items-center gap-2">
+            <span class="material-symbols-outlined !text-[16px]">verified</span>
+            Register Composer
+        </button>
+    </div>
+    
+    <div class="h-3 bg-wood-grain border-t border-black/10 dark:border-[#393528] relative z-10 w-full"></div>
+</div>

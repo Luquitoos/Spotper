@@ -1,0 +1,20 @@
+<div class="h-full flex flex-col">
+  <div class="px-6 py-6 border-b border-border-light dark:border-border-dark">
+    <h2 class="text-ink-main dark:text-off-white font-display text-lg">Períodos</h2>
+    <p class="text-ink-muted dark:text-[#8e8672] text-xs mt-1">Filtre por período musical</p>
+
+    <div class="mt-4 relative">
+      <span
+        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted dark:text-[#8e8672] !text-[18px]">search</span>
+      <input id="period-filter-input"
+        class="w-full pl-10 pr-3 py-2 rounded bg-background-light dark:bg-[#15120e] border border-border-light dark:border-border-dark text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+        placeholder="Buscar período..." />
+    </div>
+  </div>
+
+  <div class="flex-1 overflow-y-auto px-6 py-6">
+    <div id="period-list" class="flex flex-col gap-5">
+      <!-- renderizado via app.js -->
+    </div>
+  </div>
+</div>

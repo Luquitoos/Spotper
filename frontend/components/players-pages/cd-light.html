@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>SpotPer Player: CD - Album Details - Light Theme</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Noto+Sans:wght@400;500;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = { darkMode: "class", theme: { extend: { colors: { "primary": "#dfa510", "primary-dark": "#b8860b", "background-light": "#f2f0e9", "chassis-light": "#e8e6dc", "wood-light": "#8f6a4e", "metal-light": "#dcdace", "text-main": "#2a2522", "text-muted": "#6b655f" }, fontFamily: { "display": ["Noto Serif", "serif"], "mono": ["Noto Sans", "monospace"] }, boxShadow: { 'glow': '0 0 10px rgba(223, 165, 16, 0.5)', 'inner-strong': 'inset 0 2px 4px 0 rgb(0 0 0 / 0.15)', 'neumorphic': '6px 6px 12px #c8c6be, -6px -6px 12px #ffffff', 'neumorphic-pressed': 'inset 4px 4px 8px #c8c6be, inset -4px -4px 8px #ffffff' }, backgroundImage: { 'brushed-metal-light': 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%)', 'cd-reflection': 'conic-gradient(from 180deg at 50% 50%, rgba(255,255,255,0) 0deg, rgba(255,255,255,0.4) 60deg, rgba(255,255,255,0) 120deg, rgba(255,255,255,0.4) 180deg, rgba(255,255,255,0) 240deg, rgba(255,255,255,0.4) 300deg, rgba(255,255,255,0) 360deg)' } } } }
+  </script>
+  <style>
+    ::-webkit-scrollbar {
+      width: 8px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #e8e6dc
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #b0ae9f;
+      border-radius: 4px
+    }
+
+    .vfd-text {
+      text-shadow: 0 0 5px rgba(223, 165, 16, 0.6)
+    }
+
+    .laser-beam {
+      box-shadow: 0 0 8px 2px rgba(223, 165, 16, 0.6)
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .wood-texture-light {
+      background-color: #8f6a4e;
+      background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuAeO3-Myu7p7nS3cYHpVWRQoZjHBRMjfJohxSEAIukS84aOHtcwW6SCMucCRMQV0rUllYiXLzLMpFKkTHmFc8XcwXKR_W178R8SWPAfDAxLGVhB_Fr9xfrgZLu8ISl1S5LRSKrdFzYHY42aQcWVF78ZNkIYiE5Y1ktWSfhcQg3pO6mI2QFLEolmOdVzG5AVuWuQmvrxjF1vn39h9n7q6YdmJ7kOMKmsa58MXhyyq4VUowRu3qF4Q-UxQjJWF7JdmJ069Yh3Bw9rfJxj)
+    }
+  </style>
+</head>
+
+<body class="bg-background-light min-h-screen flex flex-col font-display selection:bg-primary/30 text-text-main">
+</body>
+
+</html>

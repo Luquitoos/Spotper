@@ -1,0 +1,87 @@
+<div class="pointer-events-auto w-[420px] rounded-lg shadow-2xl overflow-hidden flex flex-col border border-border-light dark:border-[#333] bg-[#e8e6dc] dark:bg-[#1c1c1c] relative group/player transition-colors duration-300">
+    
+    <div class="absolute left-0 top-0 bottom-0 w-10 bg-[#8f6a4e] dark:bg-[#4a3728] border-r border-black/20 z-10 shadow-inner overflow-hidden">
+        <div class="absolute inset-0 bg-white/5 dark:bg-black/20"></div>
+        <button class="relative z-10 w-full mt-4 text-white/50 hover:text-white transition-colors" title="Eject">
+            <span class="material-symbols-outlined !text-[18px]">eject</span>
+        </button>
+        <div class="h-full flex items-center justify-center py-2 relative z-10">
+            <span class="text-[9px] font-mono text-white/70 vertical-text tracking-[0.2em] uppercase whitespace-nowrap font-bold">Compact Disc</span>
+        </div>
+    </div>
+
+    <div class="pl-10 flex-1 flex flex-col">
+        
+        <div class="p-4 bg-[#f2f2f2] dark:bg-[#141210] border-b border-black/5 dark:border-white/5">
+            <div class="bg-black border-2 border-[#cfcdbf] dark:border-[#333] rounded-md p-3 shadow-[inset_0_2px_10px_rgba(0,0,0,1)] flex items-center justify-between relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none"></div>
+                <div class="flex flex-col">
+                    <span class="text-primary/40 text-[8px] uppercase font-mono tracking-widest">Track</span>
+                    <span class="text-primary text-2xl font-mono font-bold vfd-text leading-none">04</span>
+                </div>
+                <div class="flex flex-col items-end">
+                    <span class="text-primary/40 text-[8px] uppercase font-mono tracking-widest">Time</span>
+                    <span class="text-primary text-2xl font-mono font-bold vfd-text leading-none tracking-tighter">03:42</span>
+                </div>
+                <div class="flex gap-0.5 items-end h-6 opacity-60">
+                    <div class="w-1 bg-primary h-[40%] animate-pulse"></div>
+                    <div class="w-1 bg-primary h-[70%] animate-pulse"></div>
+                    <div class="w-1 bg-primary h-[100%]"></div>
+                    <div class="w-1 bg-primary h-[60%] animate-pulse"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 flex items-center gap-4 relative">
+            <div class="relative shrink-0">
+                <div class="size-16 rounded-full bg-cover bg-center shadow-lg relative border border-white/40 overflow-hidden" style="background-image: url('URL_DA_CAPA_AQUI');">
+                    <div class="absolute inset-0 bg-cd-reflection opacity-40 animate-[spin_10s_linear_infinite]"></div>
+                    <div class="absolute inset-0 border-[4px] border-white/10 rounded-full"></div>
+                </div>
+                <div class="absolute -bottom-1 -right-1 bg-[#1c1914] text-primary text-[8px] font-bold px-1.5 py-0.5 rounded border border-white/10 z-10 shadow-lg font-mono">DDD</div>
+            </div>
+
+            <div class="flex flex-col flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="text-primary font-mono text-[9px] tracking-widest uppercase font-bold">Now Playing</span>
+                </div>
+                <h3 data-track-title class="text-text-main dark:text-white font-display text-sm font-bold truncate">Aria - Goldberg Var.</h3>
+                <p data-track-artist class="text-text-muted dark:text-[#8e8672] text-xs truncate">Glenn Gould</p>
+            </div>
+        </div>
+
+        <div class="px-4 pb-4 mt-auto flex items-center justify-between border-t border-black/5 dark:border-white/5 pt-3">
+            <div class="flex items-center gap-3">
+                <button data-player-action="prev" class="text-text-muted dark:text-[#6d6655] hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined !text-[20px]">skip_previous</span>
+                </button>
+                <button data-player-action="play" class="size-9 rounded-full bg-white dark:bg-[#2a2620] border border-border-light dark:border-[#333] shadow-sm flex items-center justify-center text-text-main dark:text-primary active:scale-90 transition-all">
+                    <span class="material-symbols-outlined !text-[22px] fill">play_arrow</span>
+                </button>
+                <button data-player-action="pause" class="hidden size-9 rounded-full bg-white dark:bg-[#2a2620] border border-border-light dark:border-[#333] shadow-sm flex items-center justify-center text-text-main dark:text-primary active:scale-90 transition-all">
+                    <span class="material-symbols-outlined !text-[22px] fill">pause</span>
+                </button>
+                <button data-player-action="next" class="text-text-muted dark:text-[#6d6655] hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined !text-[20px]">skip_next</span>
+                </button>
+            </div>
+            
+            <button class="px-3 py-1 rounded-sm border border-border-light dark:border-[#333] text-[9px] font-mono font-bold uppercase tracking-widest text-text-muted dark:text-[#6d6655] hover:border-primary hover:text-primary transition-all">
+                Booklet
+            </button>
+        </div>
+
+        <div class="flex gap-[2px] w-full h-1 bg-black/10 dark:bg-black/40">
+            <div class="w-[10%] bg-primary shadow-[0_0_6px_#f4c025]"></div>
+            <div class="w-[10%] bg-primary shadow-[0_0_6px_#f4c025]"></div>
+            <div class="w-[10%] bg-primary shadow-[0_0_6px_#f4c025]"></div>
+            <div class="w-[10%] bg-border-light dark:bg-[#393528]"></div>
+            <div class="w-[10%] bg-border-light dark:bg-[#393528]"></div>
+            <div class="w-[10%] bg-border-light dark:bg-[#393528]"></div>
+            <div class="w-[10%] bg-border-light dark:bg-[#393528]"></div>
+            <div class="w-[10%] bg-border-light dark:bg-[#393528]"></div>
+            <div class="w-[10%] bg-border-light dark:bg-[#393528]"></div>
+            <div class="w-[10%] bg-border-light dark:bg-[#393528]"></div>
+        </div>
+    </div>
+</div>

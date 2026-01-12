@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpotPer - Classical Collection</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet" />
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#f4c025',
+            'primary-dim': '#b58d17',
+            'primary-glow': '#fcef80',
+            'background-light': '#f8f8f5',
+            'background-dark': '#181611',
+            'panel-light': '#ffffff',
+            'panel-dark': '#23201a',
+            'border-light': '#dad7ce',
+            'border-dark': '#393528',
+            'ink-main': '#2b261e',
+            'ink-muted': '#6d6655',
+            'off-white': '#e4e2d5',
+            // Modal-specific colors
+            'parchment': '#f5f3ed',
+            'charcoal-body': '#1a1a1a',
+            'beige-body': '#f8f5f0',
+            'gold-soft': '#fbbf24',
+            // Aliases for legacy component compatibility
+            'text-main': '#2b261e',
+            'text-muted': '#6d6655',
+          },
+          fontFamily: {
+            display: ['Noto Serif', 'serif'],
+            mono: ['Space Mono', 'monospace']
+          },
+          boxShadow: {
+            'amber-glow': '0 0 15px rgba(244, 192, 37, 0.15)',
+            'amber-glow-hover': '0 0 25px rgba(244, 192, 37, 0.4)',
+            'inner-bevel': 'inset 1px 1px 2px rgba(255, 255, 255, 0.5), inset -1px -1px 2px rgba(0, 0, 0, 0.05)'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Scrollbar adaptativa */
+    .light ::-webkit-scrollbar-track {
+      background: #f0efe9;
+    }
+
+    .light ::-webkit-scrollbar-thumb {
+      background: #dcd9ce;
+    }
+
+    .dark ::-webkit-scrollbar-track {
+      background: #181611;
+    }
+
+    .dark ::-webkit-scrollbar-thumb {
+      background: #393528;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #f4c025;
+    }
+
+    /* Texture classes defined in styles.css via .light/.dark selectors */
+
+    .vinyl-grooves {
+      background: repeating-radial-gradient(#111 0, #111 2px, #222 3px, #222 4px);
+    }
+
+    .amber-text-glow {
+      text-shadow: 0 0 5px rgba(244, 192, 37, 0.5);
+    }
+
+    .vertical-text {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transform: rotate(180deg);
+    }
+
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body
+  class="h-screen w-full overflow-hidden bg-background-light text-ink-main dark:bg-background-dark dark:text-off-white font-display antialiased selection:bg-primary selection:text-white flex">
+  <!-- Sidebar -->
+  <aside id="main-sidebar"
+    class="w-80 h-full flex flex-col border-r border-border-light dark:border-border-dark relative z-20 shadow-xl bg-panel-light dark:bg-panel-dark">
+    <!-- Carregado dinamicamente -->
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 flex flex-col h-full overflow-hidden bg-background-light dark:bg-background-dark relative">
+    <!-- Header -->
+    <header id="main-header"
+      class="h-20 shrink-0 bg-panel-light dark:bg-panel-dark border-b border-border-light dark:border-border-dark flex items-center justify-between px-8 shadow-sm z-10 bg-brushed-metal">
+      <!-- Carregado dinamicamente -->
+    </header>
+
+    <!-- Composer Selection Section -->
+    <section id="composer-section"
+      class="shrink-0 bg-panel-light dark:bg-[#1c1914] border-b border-border-light dark:border-border-dark pt-6 pb-6 px-8 flex flex-col gap-6 relative z-0">
+      <!-- Carregado dinamicamente -->
+    </section>
+
+    <!-- Format Filters Bar -->
+    <div id="format-filters"
+      class="h-14 bg-panel-light dark:bg-[#1c1914] border-b border-border-light dark:border-border-dark flex items-center px-8 gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide shrink-0">
+      <!-- Carregado dinamicamente -->
+    </div>
+
+    <!-- Content Area -->
+    <div id="content-area" class="flex-1 overflow-y-auto p-8 relative">
+      <!-- Fixed left action bar -->
+      <div id="left-actions" class="hidden md:flex flex-col gap-2 fixed left-6 top-[140px] z-30">
+        <!-- sempre primeira opção -->
+        <button id="btn-add-track" onclick="openModal('track')"
+          class="flex items-center gap-2 px-3 py-2 rounded bg-primary/10 border border-primary/30 text-primary text-xs font-mono font-bold hover:bg-primary/20 transition-colors shadow-amber-glow">
+          <span class="material-symbols-outlined !text-[16px]">music_note</span>
+          Adicionar Faixa
+        </button>
+        <button id="btn-import-album"
+          class="flex items-center gap-2 px-3 py-2 rounded bg-panel-light dark:bg-[#23201a] border border-border-light dark:border-[#393528] text-ink-muted dark:text-[#8e8672] text-xs font-mono font-bold hover:border-primary/50 dark:hover:border-[#6d6655] hover:text-primary dark:hover:text-white transition-colors">
+          <span class="material-symbols-outlined !text-[16px]">library_music</span>
+          Adicionar Álbum
+        </button>
+        <button id="btn-add-playlist"
+          class="flex items-center gap-2 px-3 py-2 rounded bg-panel-light dark:bg-[#23201a] border border-border-light dark:border-[#393528] text-ink-muted dark:text-[#8e8672] text-xs font-mono font-bold hover:border-primary/50 dark:hover:border-[#6d6655] hover:text-primary dark:hover:text-white transition-colors">
+          <span class="material-symbols-outlined !text-[16px]">queue_music</span>
+          Adicionar Playlist
+        </button>
+      </div>
+      <!-- Render dinâmico -->
+    </div>
+
+    <!-- Music Player Container -->
+    <div id="music-player-container" class="absolute bottom-6 right-6 z-30 pointer-events-none"></div>
+  </main>
+
+  <!-- Modal Overlay -->
+  <div id="modal-overlay" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div id="modal-content" class="w-full max-w-5xl max-h-[90vh] overflow-auto flex items-center justify-center"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/modals.js"></script>
+  <script src="js/forms.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>

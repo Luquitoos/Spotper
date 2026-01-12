@@ -1,0 +1,301 @@
+<div
+    class="relative w-full max-w-5xl h-[85vh] bg-panel-light dark:bg-panel-dark rounded-xl shadow-modal-depth overflow-hidden border border-border-light dark:border-[#5a5445] flex flex-col animate-in fade-in zoom-in-95 duration-300">
+
+    <div
+        class="px-8 py-5 border-b border-border-light dark:border-[#393528] bg-white/50 dark:bg-[#12100c] flex items-center justify-between shrink-0 z-20">
+        <div>
+            <h2 class="text-2xl font-display font-bold text-ink-main dark:text-white tracking-wide">Import New Album
+            </h2>
+            <p class="text-ink-muted dark:text-[#8e8672] text-xs font-mono uppercase tracking-widest mt-1">Catalogue
+                Synchronization</p>
+        </div>
+        <button onclick="closeModal()" class="text-ink-muted dark:text-[#6d6655] hover:text-primary transition-colors">
+            <span class="material-symbols-outlined !text-[24px]">close</span>
+        </button>
+    </div>
+
+    <form id="album-form" data-form-type="album" class="flex-1 flex overflow-hidden flex-col md:flex-row">
+
+        <div
+            class="w-full md:w-1/2 p-8 overflow-y-auto border-r border-border-light dark:border-[#393528] bg-off-white dark:bg-background-dark/40">
+            <div class="flex flex-col gap-6">
+                <div class="flex flex-col gap-2">
+                    <label for="album-nome"
+                        class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Album
+                        Name *</label>
+                    <input id="album-nome" name="nome"
+                        class="w-full bg-white dark:bg-[#e4e2d5] text-[#181611] border border-border-light dark:border-[#8e8672] rounded p-3 font-display focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm"
+                        placeholder="e.g. Goldberg Variations" type="text" required>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label for="album-descricao"
+                        class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Album
+                        Description *</label>
+                    <textarea id="album-descricao" name="descricao"
+                        class="w-full bg-white dark:bg-[#e4e2d5] text-[#181611] border border-border-light dark:border-[#8e8672] rounded p-3 font-display focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary min-h-[100px] shadow-inner-soft text-sm"
+                        placeholder="Album notes, conductor details..." required></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="flex flex-col gap-2 relative">
+                        <label for="album-gravadora"
+                            class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Record
+                            Label *</label>
+                        <select id="album-gravadora" name="cod_gravadora" id="label-select"
+                            class="w-full bg-white dark:bg-[#e4e2d5] text-[#181611] border border-border-light dark:border-[#8e8672] rounded p-2.5 font-display appearance-none focus:outline-none focus:border-primary"
+                            required>
+                            <option value="">Selecione uma gravadora</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label for="album-data-gravacao"
+                            class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Recording
+                            Date *</label>
+                        <input id="album-data-gravacao" name="data_gravacao"
+                            class="w-full bg-white dark:bg-[#e4e2d5] text-[#181611] border border-border-light dark:border-[#8e8672] rounded p-2.5 font-mono text-sm focus:outline-none focus:border-primary"
+                            type="date" min="2000-01-02" required>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label
+                        class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Physical
+                        Media *</label>
+                    <div
+                        class="flex bg-[#e8e6df] dark:bg-[#12100c] border border-border-light dark:border-[#393528] rounded p-1 shadow-inner">
+                        <button type="button" data-media-type="CD"
+                            class="flex-1 py-2 text-xs font-mono font-bold text-white bg-primary rounded shadow-sm media-type-btn">
+                            CD
+                        </button>
+                        <button type="button" data-media-type="VINIL"
+                            class="flex-1 py-2 text-xs font-mono font-bold text-ink-muted transition-colors media-type-btn">
+                            VINYL
+                        </button>
+                        <button type="button" data-media-type="DOWNLOAD"
+                            class="flex-1 py-2 text-xs font-mono font-bold text-ink-muted transition-colors media-type-btn">
+                            DIGITAL
+                        </button>
+                    </div>
+                    <input type="hidden" name="tipo_midia" id="album-tipo-midia" value="CD" required>
+                </div>
+
+                <div class="flex flex-col gap-2" id="album-qtd-unidades-container">
+                    <label for="album-qtd-unidades"
+                        class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Quantity
+                        of Units</label>
+                    <input id="album-qtd-unidades" name="qtd_unidades" type="number" min="1" value="1"
+                        class="w-full bg-white dark:bg-[#e4e2d5] text-[#181611] border border-border-light dark:border-[#8e8672] rounded p-2.5 font-mono text-sm focus:outline-none focus:border-primary">
+                </div>
+
+                <div class="flex flex-col gap-2 border-t border-border-light dark:border-[#393528] pt-6 mt-2">
+                    <label
+                        class="text-primary-dim dark:text-primary text-[10px] font-mono uppercase tracking-[0.2em] font-bold mb-2">Acquisition
+                        Details</label>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-ink-muted text-[10px] font-mono uppercase">Price *</span>
+                            <input id="album-preco" name="preco_compra"
+                                class="w-full bg-white dark:bg-[#e4e2d5] text-[#181611] border border-border-light dark:border-[#8e8672] rounded p-2 font-mono text-sm focus:outline-none"
+                                placeholder="0.00" type="number" step="0.01" min="0" required>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <span class="text-ink-muted text-[10px] font-mono uppercase">Purchase Date *</span>
+                            <input id="album-data-compra" name="data_compra"
+                                class="w-full bg-white dark:bg-[#e4e2d5] text-[#181611] border border-border-light dark:border-[#8e8672] rounded p-2 font-mono text-sm focus:outline-none"
+                                type="date" required>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <span class="text-ink-muted text-[10px] font-mono uppercase">Purchase Type *</span>
+                            <select id="album-tipo-compra" name="tipo_compra"
+                                class="w-full bg-white dark:bg-[#e4e2d5] text-[#181611] border border-border-light dark:border-[#8e8672] rounded p-2 text-xs"
+                                required>
+                                <option value="">Selecione...</option>
+                                <option value="Store">Store</option>
+                                <option value="Online">Online</option>
+                                <option value="Auction">Auction</option>
+                                <option value="Gift">Gift</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div
+            class="w-full md:w-1/2 flex flex-col bg-wood-grain-light dark:bg-wood-grain relative shadow-[inset_10px_0_20px_rgba(0,0,0,0.1)]">
+            <div class="absolute inset-0 bg-white/10 dark:bg-black/30 pointer-events-none z-0"></div>
+
+            <div
+                class="relative z-10 px-6 py-4 border-b border-black/10 dark:border-white/5 bg-white/40 dark:bg-black/40 backdrop-blur flex items-center justify-between shadow-sm">
+                <div>
+                    <h3 class="text-ink-main dark:text-white font-display font-bold text-lg">Album Tracks</h3>
+                    <p class="text-ink-muted dark:text-[#8e8672] text-[10px] font-mono uppercase">Metadata Sequence</p>
+                </div>
+                <div class="flex flex-col items-end">
+                    <div
+                        class="bg-[#0c0b09] border-2 border-[#5c554b] dark:border-[#393528] rounded-lg px-3 py-1 shadow-[inset_0_0_10px_rgba(0,0,0,1)] relative overflow-hidden group">
+                        <div
+                            class="absolute top-0 left-0 w-full h-[40%] bg-gradient-to-b from-white/10 to-transparent pointer-events-none">
+                        </div>
+                        <span id="track-count"
+                            class="font-mono text-xl text-primary font-bold vfd-text tracking-[0.2em] relative z-10">00
+                            / 64</span>
+                    </div>
+                    <span
+                        class="text-ink-muted dark:text-[#5a5445] text-[9px] font-mono mt-1 tracking-widest font-bold uppercase">Limit</span>
+                </div>
+            </div>
+
+            <div id="tracks-container" class="flex-1 overflow-y-auto p-6 relative z-10 flex flex-col gap-3">
+                <!-- Faixas serão adicionadas dinamicamente -->
+            </div>
+
+            <div class="relative z-10 px-6 pb-4">
+                <button type="button" onclick="openModal('track')"
+                    class="w-full flex items-center justify-center gap-2 py-3 border border-dashed border-ink-muted/50 rounded text-ink-muted dark:text-[#8e8672] hover:text-primary hover:border-primary/50 hover:bg-primary/5 transition-all group shadow-sm bg-white/20 dark:bg-black/20">
+                    <span class="material-symbols-outlined group-hover:scale-110 transition-transform">add_circle</span>
+                    <span class="font-mono text-xs uppercase tracking-widest font-bold">Add Track</span>
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <div
+        class="h-20 border-t border-border-light dark:border-[#393528] bg-panel-light dark:bg-[#12100c] shrink-0 flex items-center justify-end px-8 gap-4 z-20 shadow-lg">
+        <button onclick="closeModal()"
+            class="px-6 py-2.5 rounded text-ink-muted dark:text-[#8e8672] text-xs font-mono font-bold tracking-widest hover:text-ink-main dark:hover:text-white transition-colors uppercase">Discard</button>
+        <button type="submit" form="album-form"
+            class="px-8 py-2.5 rounded bg-gradient-to-b from-[#f4c025] to-[#b58d17] text-[#181611] text-xs font-mono font-bold tracking-widest shadow-amber-glow hover:brightness-110 active:scale-95 transition-all uppercase border border-[#f4c025]/50 relative overflow-hidden group">
+            <span
+                class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></span>
+            <span class="relative z-10">Save Album</span>
+        </button>
+    </div>
+</div>
+
+<script>
+    // Script inline para gerenciar faixas do álbum
+    let trackCounter = 0;
+
+    function addTrack() {
+        trackCounter++;
+        const container = document.getElementById('tracks-container');
+        if (!container) return;
+
+        const trackDiv = document.createElement('div');
+        trackDiv.className = 'flex items-center gap-3 group/track bg-white/5 dark:bg-black/20 p-2 rounded border border-transparent hover:border-primary/30 transition-all';
+        trackDiv.innerHTML = `
+        <span class="text-text-muted dark:text-[#8e8672] font-mono text-xs w-6 text-right font-bold">${trackCounter.toString().padStart(2, '0')}</span>
+        <div class="flex-1 flex flex-col gap-2">
+            <input name="tracks[${trackCounter}][descricao]" 
+                   class="w-full bg-white dark:bg-[#e4e2d5] text-[#181611] border border-border-light dark:border-[#8e8672] rounded p-2 font-display text-sm focus:outline-none focus:border-primary shadow-sm" 
+                   placeholder="Track name" type="text" required>
+            <div class="grid grid-cols-2 gap-2">
+                <select name="tracks[${trackCounter}][cod_tipo_composicao]" 
+                        class="w-full bg-white dark:bg-[#e4e2d5] text-[#181611] border border-border-light dark:border-[#8e8672] rounded p-1.5 text-xs focus:outline-none focus:border-primary" 
+                        required>
+                    <option value="">Tipo composição</option>
+                </select>
+                <input name="tracks[${trackCounter}][tempo_execucao]" 
+                       type="number" min="1" placeholder="Tempo (seg)" 
+                       class="w-full bg-white dark:bg-[#e4e2d5] text-[#181611] border border-border-light dark:border-[#8e8672] rounded p-1.5 font-mono text-xs focus:outline-none focus:border-primary" 
+                       required>
+            </div>
+            <input type="hidden" name="tracks[${trackCounter}][numero_faixa]" value="${trackCounter}">
+            <input type="hidden" name="tracks[${trackCounter}][numero_unidade]" value="1">
+        </div>
+        <button type="button" onclick="removeTrack(this)" 
+                class="size-8 rounded border border-border-light dark:border-[#393528] bg-white dark:bg-[#23201a] text-text-muted hover:text-red-500 transition-colors flex items-center justify-center">
+            <span class="material-symbols-outlined !text-[16px]">close</span>
+        </button>
+    `;
+
+        container.appendChild(trackDiv);
+        updateTrackCount();
+
+        // Carrega tipos de composição no select
+        loadCompositionTypesForTrack(trackDiv.querySelector('select'));
+    }
+
+    function removeTrack(button) {
+        const trackDiv = button.closest('.group\\/track');
+        if (trackDiv) {
+            trackDiv.remove();
+            updateTrackCount();
+            renumberTracks();
+        }
+    }
+
+    function updateTrackCount() {
+        const container = document.getElementById('tracks-container');
+        const count = container ? container.querySelectorAll('.group\\/track').length : 0;
+        const countElement = document.getElementById('track-count');
+        if (countElement) {
+            countElement.textContent = `${count.toString().padStart(2, '0')} / 64`;
+        }
+    }
+
+    function renumberTracks() {
+        const tracks = document.querySelectorAll('#tracks-container .group\\/track');
+        tracks.forEach((track, index) => {
+            const number = index + 1;
+            const numberSpan = track.querySelector('span.font-mono');
+            const numeroFaixaInput = track.querySelector('input[name*="[numero_faixa]"]');
+            if (numberSpan) numberSpan.textContent = number.toString().padStart(2, '0');
+            if (numeroFaixaInput) numeroFaixaInput.value = number;
+        });
+    }
+
+    // Inicializa seletor de tipo de mídia
+    document.addEventListener('DOMContentLoaded', function () {
+        const mediaButtons = document.querySelectorAll('.media-type-btn');
+        const tipoMidiaInput = document.getElementById('album-tipo-midia');
+        const qtdUnidadesContainer = document.getElementById('album-qtd-unidades-container');
+
+        mediaButtons.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const tipo = this.getAttribute('data-media-type');
+
+                // Atualiza botões
+                mediaButtons.forEach(b => {
+                    b.classList.remove('bg-primary', 'text-white');
+                    b.classList.add('text-text-muted');
+                });
+                this.classList.add('bg-primary', 'text-white');
+                this.classList.remove('text-text-muted');
+
+                // Atualiza input hidden
+                if (tipoMidiaInput) {
+                    tipoMidiaInput.value = tipo;
+                }
+
+                // Esconde quantidade de unidades para DOWNLOAD
+                if (qtdUnidadesContainer) {
+                    if (tipo === 'DOWNLOAD') {
+                        qtdUnidadesContainer.style.display = 'none';
+                        document.getElementById('album-qtd-unidades').value = 1;
+                    } else {
+                        qtdUnidadesContainer.style.display = 'flex';
+                    }
+                }
+            });
+        });
+    });
+
+    async function loadCompositionTypesForTrack(selectElement) {
+        if (!selectElement) return;
+
+        try {
+            // Usar cache que foi populado da API na inicialização
+            const types = (typeof SpotPerState !== 'undefined' && SpotPerState.cache?.compositionTypes) 
+                ? SpotPerState.cache.compositionTypes 
+                : await api.listCompositionTypes();
+
+            selectElement.innerHTML = '<option value="">Tipo composição</option>' +
+                types.map(type => `<option value="${type.cod_tipo_composicao}">${type.descricao}</option>`).join('');
+        } catch (error) {
+            console.error('Erro ao carregar tipos de composição:', error);
+        }
+    }
+</script>

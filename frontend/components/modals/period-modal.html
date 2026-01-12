@@ -1,0 +1,87 @@
+<div
+    class="relative w-full max-w-[700px] bg-aluminum-hardware p-[4px] rounded-lg shadow-hardware ring-1 ring-black/20 dark:ring-white/5 animate-in fade-in zoom-in-95 duration-300">
+
+    <div class="flex flex-row h-auto min-h-[450px] w-full rounded overflow-hidden shadow-inner bg-beige-body">
+
+        <div
+            class="w-10 md:w-16 bg-[#3e2723] dark:bg-[#2a1b15] flex-shrink-0 relative border-r border-black/30 shadow-[inset_-2px_0_15px_rgba(0,0,0,0.5)]">
+        </div>
+
+        <div class="flex-1 bg-charcoal-body flex flex-col p-8 md:p-12 relative">
+            <div
+                class="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-black/10 dark:from-black/50 to-transparent pointer-events-none">
+            </div>
+
+            <div class="flex flex-col mb-10">
+                <div class="flex items-center justify-between">
+                    <h2
+                        class="text-ink-main dark:text-off-white text-2xl font-bold tracking-tight font-sans uppercase drop-shadow-md">
+                        New Period</h2>
+                    <div
+                        class="w-10 h-10 rounded-full bg-stone-200 dark:bg-stone-900 shadow-inner flex items-center justify-center border border-white/50 dark:border-stone-700/50">
+                        <span
+                            class="material-symbols-outlined text-ink-muted dark:text-gold-soft drop-shadow-[0_0_3px_rgba(251,191,36,0.5)]">graphic_eq</span>
+                    </div>
+                </div>
+                <div class="h-0.5 w-12 bg-amber-700 mt-4 mb-2 shadow-[0_0_5px_rgba(180,83,9,0.5)]"></div>
+                <p class="text-ink-muted dark:text-gold-soft/50 text-xs font-mono uppercase tracking-widest">System
+                    Configuration</p>
+            </div>
+
+            <form class="space-y-8" id="period-form" data-form-type="period">
+                <div class="group">
+                    <label for="period-descricao"
+                        class="block text-[10px] font-bold text-ink-muted dark:text-gold-soft/70 uppercase tracking-widest mb-2 pl-1">Period
+                        Name *</label>
+                    <input id="period-descricao" name="descricao"
+                        class="w-full bg-transparent border-b-2 border-border-light dark:border-border-dark py-2 px-1 text-xl font-display text-ink-main dark:text-off-white placeholder-ink-muted/40 dark:placeholder-off-white/30 focus:outline-none focus:border-primary transition-colors"
+                        placeholder="e.g. Romantic Era" type="text" required>
+                </div>
+
+                <div class="grid grid-cols-2 gap-8">
+                    <div class="flex flex-col">
+                        <label for="period-ano-inicio"
+                            class="block text-[10px] font-bold text-ink-muted dark:text-gold-soft/70 uppercase tracking-widest mb-2 pl-1">Start
+                            Year *</label>
+                        <div
+                            class="relative bg-stone-200 dark:bg-stone-900 p-1.5 rounded-sm shadow-inner border-b border-white dark:border-stone-700/50">
+                            <input id="period-ano-inicio" name="ano_inicio"
+                                class="w-full py-2 text-center font-mono text-xl tracking-[0.25em] bg-white dark:bg-[#0a0a0a] text-stone-800 dark:text-[#fbbf24] rounded-sm focus:ring-2 focus:ring-amber-900/50 focus:outline-none dark:shadow-[inset_0_2px_8px_rgba(0,0,0,0.8)]"
+                                placeholder="1820" type="number" min="0" max="9999" required>
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="period-ano-fim"
+                            class="block text-[10px] font-bold text-ink-muted dark:text-gold-soft/70 uppercase tracking-widest mb-2 pl-1">End
+                            Year *</label>
+                        <div
+                            class="relative bg-stone-200 dark:bg-stone-900 p-1.5 rounded-sm shadow-inner border-b border-white dark:border-stone-700/50">
+                            <input id="period-ano-fim" name="ano_fim"
+                                class="w-full py-2 text-center font-mono text-xl tracking-[0.25em] bg-white dark:bg-[#0a0a0a] text-stone-800 dark:text-[#fbbf24] rounded-sm focus:ring-2 focus:ring-amber-900/50 focus:outline-none dark:shadow-[inset_0_2px_8px_rgba(0,0,0,0.8)]"
+                                placeholder="1900" type="number" min="0" max="9999" required>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <div class="mt-auto pt-10 flex items-center justify-between">
+                <button onclick="closeModal()"
+                    class="text-ink-muted dark:text-off-white/50 hover:text-ink-main dark:hover:text-off-white text-xs font-bold uppercase tracking-widest transition-colors duration-300">
+                    Dismiss
+                </button>
+                <button type="submit" form="period-form"
+                    class="btn-gold-tactile group relative px-8 py-3 rounded-md flex items-center gap-3 overflow-hidden">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform translate-x-[-100%] group-hover:translate-x-[100%]">
+                    </div>
+                    <span class="material-symbols-outlined text-[20px] drop-shadow-sm text-[#2a0a00]">toggle_on</span>
+                    <span class="text-xs font-bold uppercase tracking-widest text-[#2a0a00]">Register Period</span>
+                </button>
+            </div>
+        </div>
+
+        <div
+            class="w-10 md:w-16 bg-[#3e2723] dark:bg-[#2a1b15] flex-shrink-0 relative border-l border-black/30 shadow-[inset_2px_0_15px_rgba(0,0,0,0.5)]">
+        </div>
+    </div>
+</div>

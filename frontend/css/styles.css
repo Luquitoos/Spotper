@@ -1,0 +1,225 @@
+/* spotper/css/styles.css
+   CSS utilitário complementar ao Tailwind.
+   Mantém texturas/efeitos do protótipo, mas em CSS válido e organizado.
+*/
+
+/* Texturas por tema */
+.dark .bg-brushed-metal {
+  background-color: #181611;
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.02) 25%,
+    transparent 25%,
+    transparent 75%,
+    rgba(255, 255, 255, 0.02) 75%
+  );
+  background-size: 4px 4px;
+}
+
+.dark .bg-wood-grain {
+  background-color: #3e3025;
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.1) 0px,
+    rgba(0, 0, 0, 0.1) 2px,
+    transparent 2px,
+    transparent 5px
+  );
+}
+
+.light .bg-brushed-metal {
+  background-color: #f2f2f0;
+  background-image: linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.04) 25%,
+    transparent 25%,
+    transparent 75%,
+    rgba(0, 0, 0, 0.04) 75%
+  );
+  background-size: 3px 3px;
+}
+
+.light .bg-wood-grain {
+  background-color: #dccbb6;
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.03) 0px,
+    rgba(0, 0, 0, 0.03) 2px,
+    transparent 2px,
+    transparent 5px
+  );
+}
+
+/* Vinil */
+.vinyl-grooves {
+  background: repeating-radial-gradient(#111 0, #111 2px, #222 3px, #222 4px);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.vinyl-spin {
+  animation: spin 8s linear infinite;
+}
+
+.vertical-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+}
+
+/* Painel de vidro (sem @apply; tailwind via CDN não processa) */
+.glass-panel {
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.light .glass-panel {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.dark .glass-panel {
+  background: rgba(24, 22, 17, 0.8);
+}
+
+.light .amber-text-glow {
+  text-shadow: 0 0 8px rgba(217, 164, 4, 0.3);
+}
+
+.dark .amber-text-glow {
+  text-shadow: 0 0 12px rgba(244, 192, 37, 0.5);
+}
+
+.vfd-text {
+  text-shadow: 0 0 8px rgba(244, 192, 37, 0.6), 0 0 15px rgba(244, 192, 37, 0.3);
+}
+
+/* Fundos extras opcionais (mantidos do protótipo) */
+.bg-wood-grain-light {
+  background-color: #d6c6ad;
+  background-image: repeating-linear-gradient(
+      135deg,
+      rgba(139, 69, 19, 0.05) 0px,
+      rgba(139, 69, 19, 0.05) 2px,
+      transparent 2px,
+      transparent 5px
+    ),
+    repeating-linear-gradient(
+      45deg,
+      rgba(139, 69, 19, 0.08) 0px,
+      rgba(139, 69, 19, 0.08) 1px,
+      transparent 1px,
+      transparent 10px
+    );
+}
+
+.bg-brushed-metal-light {
+  background-color: #e8e8e8;
+  background-image: linear-gradient(180deg, #f2f2f2 0%, #d8d8d8 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.shadow-modal-depth {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Hardware look */
+.dark .bg-aluminum-hardware {
+  background-color: #262626;
+  background-image: repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 2px,
+      rgba(0, 0, 0, 0.15) 2px,
+      rgba(0, 0, 0, 0.15) 3px
+    ),
+    linear-gradient(180deg, #404040 0%, #171717 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.light .bg-aluminum-hardware {
+  background-color: #d1d5db;
+  background-image: repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 2px,
+      rgba(0, 0, 0, 0.03) 2px,
+      rgba(0, 0, 0, 0.03) 3px
+    ),
+    linear-gradient(180deg, #f3f4f6 0%, #d1d5db 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.btn-gold-tactile {
+  background: linear-gradient(180deg, #f59e0b 0%, #b45309 50%, #78350f 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+  transition: all 0.2s ease;
+}
+
+.btn-gold-tactile:active {
+  transform: translateY(2px);
+  background: linear-gradient(180deg, #b45309 0%, #78350f 100%);
+}
+
+/* ============================
+   MODAL COMPONENT STYLES
+   ============================ */
+
+/* Walnut wood grain deep texture for modal edges */
+.bg-walnut-grain-deep {
+  background-color: #2b1d16;
+  background-image: 
+    linear-gradient(90deg, #2b1d16 0%, #1a0f0a 20%, #36241b 40%, #2b1d16 60%, #1a0f0a 80%, #2b1d16 100%);
+}
+
+/* Soft inner shadow for form inputs */
+.shadow-soft-inner {
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08), inset 0 0 0 1px rgba(0, 0, 0, 0.02);
+}
+
+/* Gold glow effect for primary buttons */
+.shadow-gold-glow {
+  box-shadow: 0 0 20px 4px rgba(244, 192, 37, 0.25);
+}
+
+/* Hardware frame shadow for period modal */
+.shadow-hardware {
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.3),
+    0 2px 4px -1px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Parchment backgrounds */
+.light .bg-parchment {
+  background-color: #f5f3ed;
+}
+
+.dark .bg-parchment {
+  background-color: #1c1c1c;
+}
+
+/* Beige body backgrounds */
+.light .bg-beige-body {
+  background-color: #f8f5f0;
+}
+
+.dark .bg-beige-body {
+  background-color: #0f0f0f;
+}
+
+/* Charcoal body for dark mode */
+.light .bg-charcoal-body {
+  background-color: #f8f8f5;
+}
+
+.dark .bg-charcoal-body {
+  background-color: #1a1a1a;
+}

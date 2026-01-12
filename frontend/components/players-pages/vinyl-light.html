@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SpotPer Player: Vinyl - Light</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+tailwind.config = { darkMode: "class" };
+</script>
+<style>
+.vinyl-spin{animation:spin 8s linear infinite}@keyframes spin{100%{transform:rotate(360deg)}}
+.vinyl-sheen{background:linear-gradient(135deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.1) 40%,rgba(255,255,255,0.05) 50%,rgba(255,255,255,0) 100%)}
+</style>
+</head>
+<body class="bg-[#e8e6e1] text-[#2c241b] font-display min-h-screen">
+<header class="w-full bg-white border-b border-[#d6cfc2] px-6 py-4">
+  <h1 class="text-2xl font-bold tracking-tight">SpotPer - Vinyl Player</h1>
+</header>
+<main class="p-6 flex items-center justify-center">
+  <div class="relative w-full max-w-[1200px] rounded-xl overflow-hidden border border-[#bbb] bg-white">
+    <div class="p-10 flex flex-col md:flex-row gap-10 items-center justify-center">
+      <div class="relative size-[340px] md:size-[420px] rounded-full bg-[#ccc] shadow-2xl border-4 border-[#bbb]">
+        <div class="absolute inset-[8%] rounded-full bg-[repeating-radial-gradient(#111_0,#111_2px,#222_3px,#222_4px)] vinyl-spin"></div>
+        <div class="absolute inset-0 rounded-full vinyl-sheen"></div>
+        <div class="absolute inset-0 m-auto size-[110px] rounded-full bg-[#800000] border-4 border-[#111] flex items-center justify-center text-white">
+          <span class="text-xs">Album</span>
+        </div>
+      </div>
+      <div class="flex-1 text-center md:text-left">
+        <h2 class="text-3xl font-bold">Vinyl Deck</h2>
+        <p class="text-[#6b5d52]">Light themed vinyl player showcase.</p>
+      </div>
+    </div>
+  </div>
+</main>
+</body></html>

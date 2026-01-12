@@ -1,0 +1,48 @@
+<div class="absolute bottom-6 right-6 z-30 pointer-events-none">
+    <div class="bg-[#181611]/80 backdrop-blur-2xl rounded-xl border border-white/10 shadow-2xl pointer-events-auto flex overflow-hidden ring-1 ring-white/5 transition-all duration-500">
+        <div class="w-8 bg-white/5 border-r border-white/5 flex flex-col items-center justify-center cursor-n-resize hover:bg-white/10 transition-colors group">
+            <span class="material-symbols-outlined text-white/20 group-hover:text-primary transition-colors !text-[16px]">expand_less</span>
+            <div class="flex-1 flex items-center justify-center py-2">
+                <span class="text-[9px] font-mono text-white/30 group-hover:text-primary transition-colors vertical-text tracking-widest uppercase whitespace-nowrap">Digital Deck</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-4 p-2 pr-6 relative">
+            <div class="absolute top-2 left-[70px] flex items-center gap-1.5 opacity-80">
+                <span class="material-symbols-outlined text-primary !text-[12px]">download_done</span>
+                <span class="text-[9px] font-mono text-[#8e8672] tracking-widest uppercase">Digital Source</span>
+            </div>
+            <div data-track-cover class="size-16 rounded-md bg-cover bg-center border border-white/10 relative shadow-lg mt-4" 
+                 style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCIaglB4R5wSogRCmG2WGCWxesKQ1Ed7wY-TpryQSZaYjdijivLmTaAGUEuChTUN1I5hWna8-cZNJmRGkkcx3o47wpPPPwMVOEtLiVhHynbjG7GLrJEC6u8T__aJlWDhAHRv7S6XVpZdXXErFGqeSnt7cyAvFrIDWEVLmCeiZFeObPbdsnQtDFBDkDTna-WN2p207wR1FeLRwumFHAWK8crC4kKSZCvTMbcQ6jTvtFanV7yijotEv1f9jphl3EB1f9RmE5XGgc-MryE');">
+                <div class="absolute inset-0 bg-black/10 rounded-md"></div>
+                <div class="absolute -bottom-1 -right-1 bg-[#1c1914] text-primary text-[8px] font-bold px-1.5 py-0.5 rounded border border-white/10 z-10 shadow-lg font-mono">FLAC</div>
+            </div>
+            <div class="flex flex-col gap-1 min-w-[200px] mt-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-primary font-mono text-[10px] tracking-widest uppercase amber-text-glow">Now Playing</span>
+                    <span class="text-white/40 font-mono text-[9px] border border-white/5 px-1 rounded bg-white/5">96kHz • 24bit</span>
+                </div>
+                <div data-track-title class="text-white font-display text-sm tracking-wide truncate">Aria - Goldberg Variations</div>
+                <div data-track-artist class="text-[#8e8672] font-sans text-xs truncate">Glenn Gould</div>
+                <div class="w-full h-1 bg-white/5 rounded-full mt-1.5 overflow-hidden">
+                    <div data-progress-bar class="h-full bg-gradient-to-r from-primary/70 to-primary w-1/3 shadow-[0_0_10px_#f4c025] relative">
+                        <div class="absolute right-0 top-0 bottom-0 w-px bg-white/60"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 border-l border-white/5 pl-4 mt-4">
+                <button data-player-action="prev" class="text-[#8e8672] hover:text-white transition-colors">
+                    <span class="material-symbols-outlined !text-[20px]">skip_previous</span>
+                </button>
+                <button data-player-action="play" class="size-10 rounded-full bg-white/5 border border-white/10 text-primary flex items-center justify-center shadow-lg hover:bg-primary hover:text-[#181611] transition-all active:scale-95 group-play">
+                    <span class="material-symbols-outlined !text-[24px] group-hover:fill-black">play_arrow</span>
+                </button>
+                <button data-player-action="pause" class="hidden size-10 rounded-full bg-white/5 border border-white/10 text-primary flex items-center justify-center shadow-lg hover:bg-primary hover:text-[#181611] transition-all active:scale-95">
+                    <span class="material-symbols-outlined !text-[24px] fill-black">pause</span>
+                </button>
+                <button data-player-action="next" class="text-[#8e8672] hover:text-white transition-colors">
+                    <span class="material-symbols-outlined !text-[20px]">skip_next</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

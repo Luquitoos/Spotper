@@ -1,0 +1,43 @@
+<div class="flex items-center gap-6">
+  <div class="flex flex-col leading-tight">
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">album</span>
+      <h1 class="text-ink-main dark:text-off-white font-display text-2xl tracking-tight">SpotPer</h1>
+    </div>
+    <span class="text-ink-muted dark:text-[#8e8672] text-xs font-mono tracking-widest">COLEÇÃO CLÁSSICA • PROTÓTIPO
+      UI</span>
+  </div>
+</div>
+
+<div class="flex items-center gap-4">
+  <!-- Tabs -->
+  <nav
+    class="flex items-center gap-2 rounded-full p-1 bg-background-light/60 dark:bg-[#15120e] border border-border-light dark:border-border-dark">
+    <button id="tab-albums" data-action="switch-tab" data-view="albums" type="button"
+      class="px-6 py-2 rounded-full text-ink-muted hover:text-ink-main hover:bg-gray-100 text-xs font-bold font-mono tracking-widest transition-all active:scale-95 dark:text-[#8e8672] dark:hover:text-off-white dark:hover:bg-[#23201a]">ÁLBUNS</button>
+    <button id="tab-playlists" data-action="switch-tab" data-view="playlists" type="button"
+      class="px-6 py-2 rounded-full text-ink-muted hover:text-ink-main hover:bg-gray-100 text-xs font-bold font-mono tracking-widest transition-all active:scale-95 dark:text-[#8e8672] dark:hover:text-off-white dark:hover:bg-[#23201a]">PLAYLISTS</button>
+    <button id="tab-tracks" data-action="switch-tab" data-view="tracks" type="button"
+      class="px-6 py-2 rounded-full text-ink-muted hover:text-ink-main hover:bg-gray-100 text-xs font-bold font-mono tracking-widest transition-all active:scale-95 dark:text-[#8e8672] dark:hover:text-off-white dark:hover:bg-[#23201a]">FAIXAS</button>
+    <button data-action="switch-tab" data-view="queries" type="button"
+      class="px-6 py-2 rounded-full text-ink-muted hover:text-ink-main hover:bg-gray-100 text-xs font-bold font-mono tracking-widest transition-all active:scale-95 dark:text-[#8e8672] dark:hover:text-off-white dark:hover:bg-[#23201a]">CONSULTAS</button>
+  </nav>
+
+  <!-- Actions -->
+  <button onclick="povoarDados && povoarDados()"
+    class="hidden md:flex items-center gap-3 px-6 py-3 rounded-lg bg-green-600 border-2 border-green-400 text-white text-sm font-mono font-bold hover:bg-green-500 hover:scale-105 transition-all shadow-lg shadow-green-600/30 animate-pulse">
+    <span class="material-symbols-outlined !text-[24px]">database</span>
+    POVOAR DADOS
+  </button>
+
+  <button onclick="openModal('label-list')"
+    class="hidden md:flex items-center gap-2 px-3 py-2 rounded bg-panel-light dark:bg-panel-dark border border-border-light dark:border-border-dark text-ink-muted dark:text-[#8e8672] text-xs font-mono hover:border-primary hover:text-primary transition-colors">
+    <span class="material-symbols-outlined !text-[18px]">store</span>
+    GRAVADORAS
+  </button>
+
+  <button onclick="window.toggleTheme && window.toggleTheme()"
+    class="flex items-center justify-center size-10 rounded bg-panel-light dark:bg-panel-dark border border-border-light dark:border-border-dark hover:border-primary transition-colors">
+    <span class="material-symbols-outlined text-ink-muted dark:text-[#8e8672]">dark_mode</span>
+  </button>
+</div>
