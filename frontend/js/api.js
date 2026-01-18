@@ -108,6 +108,13 @@ class SpotPerAPI {
         });
     }
 
+    async updateComposer(codCompositor, composerData) {
+        return this.request(`/composers/${codCompositor}`, {
+            method: 'PUT',
+            body: JSON.stringify(composerData)
+        });
+    }
+
     async searchComposersByName(nome) {
         return this.request(`/composers/search?nome=${encodeURIComponent(nome)}`);
     }
@@ -124,6 +131,13 @@ class SpotPerAPI {
     async createInterpreter(interpreterData) {
         return this.request('/interpreters', {
             method: 'POST',
+            body: JSON.stringify(interpreterData)
+        });
+    }
+
+    async updateInterpreter(codInterprete, interpreterData) {
+        return this.request(`/interpreters/${codInterprete}`, {
+            method: 'PUT',
             body: JSON.stringify(interpreterData)
         });
     }
@@ -159,6 +173,13 @@ class SpotPerAPI {
     async createPeriod(periodData) {
         return this.request('/periods', {
             method: 'POST',
+            body: JSON.stringify(periodData)
+        });
+    }
+
+    async updatePeriod(codPeriodo, periodData) {
+        return this.request(`/periods/${codPeriodo}`, {
+            method: 'PUT',
             body: JSON.stringify(periodData)
         });
     }

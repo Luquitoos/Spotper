@@ -787,46 +787,65 @@ window.editLabel = editLabel;
 
 /**
  * Inicializa o modal de lista de gravadoras
+ * ATUALIZADO: Preenche ambos containers (light e dark mode)
  */
 async function initLabelListModal() {
+    console.log('[Labels] Carregando lista...');
     try {
-        // TODO: Substituir por chamada real da API
-        // const labels = await api.listLabels();
+        const light = document.getElementById('labels-container');
+        const dark = document.getElementById('labels-container-dark');
 
-        const labelsContainer = document.getElementById('labels-container');
-        if (!labelsContainer) return;
+        // Loading
+        const loading = '<div class="col-span-full text-center py-12">Carregando...</div>';
+        if (light) light.innerHTML = loading;
+        if (dark) dark.innerHTML = loading;
 
-        // TODO: Fetch from API - GET /api/gravadoras
-        const labels = SpotPerState?.cache?.labels || [];
+        // Fetch
+        const labels = await api.listLabels();
+        console.log('[Labels] Dados:', labels);
 
-        labelsContainer.innerHTML = labels.map(label => `
+        SpotPerState.cache.labels = labels;
+
+        // Update counters
+        const c1 = document.getElementById('labels-count');
+        const c2 = document.getElementById('labels-count-dark');
+        if (c1) c1.textContent = labels.length;
+        if (c2) c2.textContent = labels.length;
+
+        if (!labels.length) {
+            const empty = '<div class="col-span-full text-center py-12">Nenhuma gravadora.</div>';
+            if (light) light.innerHTML = empty;
+            if (dark) dark.innerHTML = empty;
+            return;
+        }
+
+        const html = labels.map(l => `
             <div class="flex flex-col bg-white dark:bg-[#1f1f1f] rounded-lg border border-stone-200 dark:border-stone-800 shadow-sm hover:border-primary transition-all p-6 relative group">
                 <div class="absolute top-0 left-0 w-full h-1 bg-primary"></div>
-                <h3 class="text-2xl font-display font-bold text-text-main dark:text-white group-hover:text-primary transition-colors">${label.nome}</h3>
+                <h3 class="text-2xl font-display font-bold text-text-main dark:text-white group-hover:text-primary transition-colors">${escapeHtml(l.nome)}</h3>
                 <div class="flex flex-col gap-3 mt-6">
-                    ${label.endereco ? `
-                        <div class="flex items-start gap-3">
-                            <span class="material-symbols-outlined text-primary text-sm">location_on</span>
-                            <p class="text-text-muted text-xs">${label.endereco}</p>
-                        </div>
-                    ` : ''}
-                    ${label.homepage ? `
-                        <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-primary text-sm">language</span>
-                            <a href="https://${label.homepage}" target="_blank" class="text-text-muted text-xs hover:underline">${label.homepage}</a>
-                        </div>
-                    ` : ''}
+                    ${l.endereco ? `<div class="flex items-start gap-3"><span class="material-symbols-outlined text-primary text-sm">location_on</span><p class="text-text-muted text-xs">${escapeHtml(l.endereco)}</p></div>` : ''}
+                    ${l.homepage ? `<div class="flex items-center gap-3"><span class="material-symbols-outlined text-primary text-sm">language</span><a href="${escapeHtml(l.homepage)}" target="_blank" class="text-text-muted text-xs hover:underline">${escapeHtml(l.homepage)}</a></div>` : ''}
                 </div>
-                <button onclick="editLabel(${label.cod_gravadora})" 
-                        class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 bg-primary text-background-dark p-2 rounded-full shadow-lg transition-all">
+                <button onclick="editLabel(${l.cod_gravadora})" class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 bg-primary text-background-dark p-2 rounded-full shadow-lg transition-all">
                     <span class="material-symbols-outlined !text-[18px]">edit</span>
                 </button>
             </div>
         `).join('');
+
+        if (light) light.innerHTML = html;
+        if (dark) dark.innerHTML = html;
+        console.log('[Labels] OK');
     } catch (error) {
-        console.error('Erro ao carregar gravadoras:', error);
+        console.error('[Labels] Erro:', error);
+        const err = '<div class="col-span-full text-center py-12 text-red-500">Erro ao carregar.</div>';
+        const light = document.getElementById('labels-container');
+        const dark = document.getElementById('labels-container-dark');
+        if (light) light.innerHTML = err;
+        if (dark) dark.innerHTML = err;
     }
 }
+
 
 /**
  * Inicializa o modal de período

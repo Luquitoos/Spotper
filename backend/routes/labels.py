@@ -81,13 +81,19 @@ def criar_gravadora():
     cursor = conexao.cursor()
     
     try:
+        # Use OUTPUT clause to get the inserted ID directly
         cursor.execute("""
             INSERT INTO GRAVADORA (nome, endereco, homepage) 
+            OUTPUT INSERTED.cod_gravadora
             VALUES (?, ?, ?)
         """, (dados['nome'], dados.get('endereco'), dados.get('homepage')))
         
-        cursor.execute("SELECT SCOPE_IDENTITY()")
-        cod_gravadora = int(cursor.fetchone()[0])
+        result = cursor.fetchone()
+        
+        if result is None or result[0] is None:
+            raise Exception("Falha ao obter ID da gravadora criada")
+        
+        cod_gravadora = result[0]
         
         telefones = dados.get('telefones', [])
         for tel in telefones:

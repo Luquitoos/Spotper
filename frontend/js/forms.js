@@ -100,6 +100,7 @@ function validateInterpreterForm(data) {
     return true;
 }
 
+
 /**
  * Valida formulário de gravadora
  */
@@ -108,8 +109,19 @@ function validateLabelForm(data) {
         showError('Nome da gravadora é obrigatório');
         return false;
     }
+
+    // Validate homepage URL if provided
+    if (data.homepage && data.homepage.trim() !== '') {
+        const urlPattern = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)$/;
+        if (!urlPattern.test(data.homepage)) {
+            showError('URL da homepage inválida. Use o formato: https://www.exemplo.com');
+            return false;
+        }
+    }
+
     return true;
 }
+
 
 /**
  * Valida formulário de álbum
@@ -229,6 +241,9 @@ async function submitForm(formId, data, formElement) {
             submitButton.classList.add('bg-green-600');
         }
 
+        // Clear edit mode data
+        currentEditData = null;
+
         // Fecha o modal e re-renderiza após sucesso
         setTimeout(() => {
             closeModal();
@@ -299,34 +314,52 @@ async function sendToBackend(endpoint, payload) {
     try {
         let response;
 
+        // Check if we're editing (currentEditData.id exists) or creating new
+        const isEditing = currentEditData && currentEditData.id;
+        const entityId = isEditing ? currentEditData.id : null;
+
         switch (endpoint) {
             case 'composer-form':
             case 'composer':
-                response = await api.createComposer(payload);
+                response = isEditing
+                    ? await api.updateComposer(entityId, payload)
+                    : await api.createComposer(payload);
                 break;
             case 'interpreter-form':
             case 'interpreter':
-                response = await api.createInterpreter(payload);
+                response = isEditing
+                    ? await api.updateInterpreter(entityId, payload)
+                    : await api.createInterpreter(payload);
                 break;
             case 'label-form':
             case 'label':
-                response = await api.createLabel(payload);
+                response = isEditing
+                    ? await api.updateLabel(entityId, payload)
+                    : await api.createLabel(payload);
                 break;
             case 'album-form':
             case 'album':
-                response = await api.createAlbum(payload);
+                response = isEditing
+                    ? await api.updateAlbum(entityId, payload)
+                    : await api.createAlbum(payload);
                 break;
             case 'playlist-form':
             case 'playlist':
-                response = await api.createPlaylist(payload);
+                response = isEditing
+                    ? await api.updatePlaylist(entityId, payload)
+                    : await api.createPlaylist(payload);
                 break;
             case 'period-form':
             case 'period':
-                response = await api.createPeriod(payload);
+                response = isEditing
+                    ? await api.updatePeriod(entityId, payload)
+                    : await api.createPeriod(payload);
                 break;
             case 'track-form':
             case 'track':
-                response = await api.createTrack(payload);
+                response = isEditing
+                    ? await api.updateTrack(entityId, payload)
+                    : await api.createTrack(payload);
                 break;
             case 'composition-type-form':
             case 'composition-type':
