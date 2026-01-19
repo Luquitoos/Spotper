@@ -57,6 +57,9 @@ async function initApp() {
 
   // Enable drag-to-scroll on carousels
   initCarouselDragScroll();
+
+  // Enable drag-to-resize on catalog section
+  initCatalogResize();
 }
 
 
@@ -1522,3 +1525,132 @@ function initCarouselDragScroll() {
 window.povoarDados = povoarDados;
 window.enableDragScroll = enableDragScroll;
 window.initCarouselDragScroll = initCarouselDragScroll;
+
+/**
+ * Initialize drag-to-resize on catalog section
+ * Dragging up shrinks the composer section, dragging down expands it
+ */
+function initCatalogResize() {
+  const resizeHandle = document.getElementById('catalog-resize-handle');
+  const composerSection = document.getElementById('composer-section');
+  const formatFilters = document.getElementById('format-filters');
+
+  if (!resizeHandle || !composerSection) {
+    console.warn('[SpotPer] Resize handle or composer section not found');
+    return;
+  }
+
+  console.log('[SpotPer] Initializing catalog resize...');
+
+  let isResizing = false;
+  let startY = 0;
+  let startComposerHeight = 0;
+  const minComposerHeight = 60;
+  let maxComposerHeight = 400; // Will be updated to initial height
+
+  // Get initial height after a short delay to ensure content is loaded
+  let initialComposerHeight = 200;
+  setTimeout(() => {
+    initialComposerHeight = composerSection.offsetHeight || 200;
+    maxComposerHeight = Math.max(400, initialComposerHeight); // Allow returning to original size
+    console.log('[SpotPer] Initial composer height:', initialComposerHeight, 'Max:', maxComposerHeight);
+  }, 500);
+
+  function startResize(clientY) {
+    isResizing = true;
+    startY = clientY;
+    startComposerHeight = composerSection.offsetHeight;
+
+    // Visual feedback
+    resizeHandle.style.backgroundColor = 'rgba(244, 192, 37, 0.3)';
+    document.body.style.cursor = 'ns-resize';
+    document.body.style.userSelect = 'none';
+    composerSection.style.overflow = 'hidden';
+
+    console.log('[SpotPer] Resize started at Y:', startY, 'Height:', startComposerHeight);
+  }
+
+  function doResize(clientY) {
+    if (!isResizing) return;
+
+    const deltaY = clientY - startY;
+    let newHeight = startComposerHeight + deltaY;
+
+    // Clamp
+    newHeight = Math.max(minComposerHeight, Math.min(maxComposerHeight, newHeight));
+
+    // Apply height
+    composerSection.style.height = `${newHeight}px`;
+
+    // Scale items proportionally
+    const currentInitialHeight = initialComposerHeight || startComposerHeight;
+    const scale = Math.max(0.4, Math.min(1, newHeight / currentInitialHeight));
+
+    const carouselItems = composerSection.querySelectorAll('#composer-carousel > *, #interpreter-carousel > *');
+    carouselItems.forEach(item => {
+      item.style.transform = `scale(${scale})`;
+      item.style.transformOrigin = 'left center';
+    });
+
+    // Hide labels when small
+    const labels = composerSection.querySelectorAll('.text-xs.font-mono.tracking-widest');
+    labels.forEach(label => {
+      label.style.opacity = newHeight < 100 ? '0' : '1';
+      label.style.height = newHeight < 100 ? '0' : 'auto';
+      label.style.marginBottom = newHeight < 100 ? '0' : '';
+    });
+
+    // Hide title when very small
+    const titleContainer = composerSection.querySelector('.flex.items-center.justify-between');
+    if (titleContainer) {
+      titleContainer.style.opacity = newHeight < 80 ? '0' : '1';
+      titleContainer.style.height = newHeight < 80 ? '0' : 'auto';
+      titleContainer.style.overflow = 'hidden';
+    }
+  }
+
+  function stopResize() {
+    if (!isResizing) return;
+
+    isResizing = false;
+    resizeHandle.style.backgroundColor = '';
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+
+    console.log('[SpotPer] Resize stopped. New height:', composerSection.offsetHeight);
+  }
+
+  // Mouse events
+  resizeHandle.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    startResize(e.clientY);
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    doResize(e.clientY);
+  });
+
+  document.addEventListener('mouseup', () => {
+    stopResize();
+  });
+
+  // Touch events
+  resizeHandle.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    startResize(touch.clientY);
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!isResizing) return;
+    const touch = e.touches[0];
+    doResize(touch.clientY);
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    stopResize();
+  });
+
+  console.log('[SpotPer] Catalog resize initialized');
+}
+
+window.initCatalogResize = initCatalogResize;
