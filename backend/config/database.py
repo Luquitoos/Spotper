@@ -1,6 +1,6 @@
 import pyodbc
 SERVER = r'.\SQLEXPRESS'  
-DATABASE = 'BDSpotPer'
+DATABASE = 'SpotPer'
 CONEXAO_STRING = (
     f'DRIVER={{ODBC Driver 18 for SQL Server}};'
     f'SERVER={SERVER};'
