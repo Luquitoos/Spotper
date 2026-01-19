@@ -4,10 +4,10 @@
     <div
         class="px-8 py-5 border-b border-border-light dark:border-[#393528] bg-white/50 dark:bg-[#12100c] flex items-center justify-between shrink-0 z-20">
         <div>
-            <h2 class="text-2xl font-display font-bold text-ink-main dark:text-white tracking-wide">Import New Album
+            <h2 class="text-2xl font-display font-bold text-ink-main dark:text-white tracking-wide">Importar novo album
             </h2>
-            <p class="text-ink-muted dark:text-[#8e8672] text-xs font-mono uppercase tracking-widest mt-1">Catalogue
-                Synchronization</p>
+            <p class="text-ink-muted dark:text-[#8e8672] text-xs font-mono uppercase tracking-widest mt-1">Sincronização de catálogo
+               </p>
         </div>
         <button onclick="closeModal()" class="text-ink-muted dark:text-[#6d6655] hover:text-primary transition-colors">
             <span class="material-symbols-outlined !text-[24px]">close</span>
@@ -21,8 +21,8 @@
             <div class="flex flex-col gap-6">
                 <div class="flex flex-col gap-2">
                     <label for="album-nome"
-                        class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Album
-                        Name *</label>
+                        class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Nome do Album
+                        *</label>
                     <input id="album-nome" name="nome"
                         class="w-full bg-white dark:bg-[#e4e2d5] text-[#181611] border border-border-light dark:border-[#8e8672] rounded p-3 font-display focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm"
                         placeholder="e.g. Goldberg Variations" type="text" required>
@@ -30,8 +30,8 @@
 
                 <div class="flex flex-col gap-2">
                     <label for="album-descricao"
-                        class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Album
-                        Description *</label>
+                        class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Descrição do Album
+                         *</label>
                     <textarea id="album-descricao" name="descricao"
                         class="w-full bg-white dark:bg-[#e4e2d5] text-[#181611] border border-border-light dark:border-[#8e8672] rounded p-3 font-display focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary min-h-[100px] shadow-inner-soft text-sm"
                         placeholder="Album notes, conductor details..." required></textarea>
@@ -40,8 +40,7 @@
                 <div class="grid grid-cols-2 gap-6">
                     <div class="flex flex-col gap-2 relative">
                         <label for="album-gravadora"
-                            class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Record
-                            Label *</label>
+                            class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Gravadora*</label>
                         <select id="album-gravadora" name="cod_gravadora" id="label-select"
                             class="w-full bg-white dark:bg-[#e4e2d5] text-[#181611] border border-border-light dark:border-[#8e8672] rounded p-2.5 font-display appearance-none focus:outline-none focus:border-primary"
                             required>
@@ -50,8 +49,7 @@
                     </div>
                     <div class="flex flex-col gap-2">
                         <label for="album-data-gravacao"
-                            class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Recording
-                            Date *</label>
+                            class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Data de Lançamento *</label>
                         <input id="album-data-gravacao" name="data_gravacao"
                             class="w-full bg-white dark:bg-[#e4e2d5] text-[#181611] border border-border-light dark:border-[#8e8672] rounded p-2.5 font-mono text-sm focus:outline-none focus:border-primary"
                             type="date" min="2000-01-02" required>
@@ -60,8 +58,7 @@
 
                 <div class="flex flex-col gap-2">
                     <label
-                        class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Physical
-                        Media *</label>
+                        class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Tipo de Mídia *</label>
                     <div
                         class="flex bg-[#e8e6df] dark:bg-[#12100c] border border-border-light dark:border-[#393528] rounded p-1 shadow-inner">
                         <button type="button" data-media-type="CD"
@@ -70,7 +67,7 @@
                         </button>
                         <button type="button" data-media-type="VINIL"
                             class="flex-1 py-2 text-xs font-mono font-bold text-ink-muted transition-colors media-type-btn">
-                            VINYL
+                            VINIL
                         </button>
                         <button type="button" data-media-type="DOWNLOAD"
                             class="flex-1 py-2 text-xs font-mono font-bold text-ink-muted transition-colors media-type-btn">
@@ -82,39 +79,38 @@
 
                 <div class="flex flex-col gap-2" id="album-qtd-unidades-container">
                     <label for="album-qtd-unidades"
-                        class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Quantity
-                        of Units</label>
+                        class="text-primary-dim dark:text-primary text-xs font-mono font-bold uppercase tracking-widest pl-1">Quantidade de Unidades</label>
                     <input id="album-qtd-unidades" name="qtd_unidades" type="number" min="1" value="1"
                         class="w-full bg-white dark:bg-[#e4e2d5] text-[#181611] border border-border-light dark:border-[#8e8672] rounded p-2.5 font-mono text-sm focus:outline-none focus:border-primary">
                 </div>
 
                 <div class="flex flex-col gap-2 border-t border-border-light dark:border-[#393528] pt-6 mt-2">
                     <label
-                        class="text-primary-dim dark:text-primary text-[10px] font-mono uppercase tracking-[0.2em] font-bold mb-2">Acquisition
-                        Details</label>
+                        class="text-primary-dim dark:text-primary text-[10px] font-mono uppercase tracking-[0.2em] font-bold mb-2">Detalhes de
+                        Aquisição</label>
                     <div class="grid grid-cols-3 gap-4">
                         <div class="flex flex-col gap-1">
-                            <span class="text-ink-muted text-[10px] font-mono uppercase">Price *</span>
+                            <span class="text-ink-muted text-[10px] font-mono uppercase">Preço *</span>
                             <input id="album-preco" name="preco_compra"
                                 class="w-full bg-white dark:bg-[#e4e2d5] text-[#181611] border border-border-light dark:border-[#8e8672] rounded p-2 font-mono text-sm focus:outline-none"
                                 placeholder="0.00" type="number" step="0.01" min="0" required>
                         </div>
                         <div class="flex flex-col gap-1">
-                            <span class="text-ink-muted text-[10px] font-mono uppercase">Purchase Date *</span>
+                            <span class="text-ink-muted text-[10px] font-mono uppercase">Data de Compra *</span>
                             <input id="album-data-compra" name="data_compra"
                                 class="w-full bg-white dark:bg-[#e4e2d5] text-[#181611] border border-border-light dark:border-[#8e8672] rounded p-2 font-mono text-sm focus:outline-none"
                                 type="date" required>
                         </div>
                         <div class="flex flex-col gap-1">
-                            <span class="text-ink-muted text-[10px] font-mono uppercase">Purchase Type *</span>
+                            <span class="text-ink-muted text-[10px] font-mono uppercase">Tipo de Compra *</span>
                             <select id="album-tipo-compra" name="tipo_compra"
                                 class="w-full bg-white dark:bg-[#e4e2d5] text-[#181611] border border-border-light dark:border-[#8e8672] rounded p-2 text-xs"
                                 required>
                                 <option value="">Selecione...</option>
                                 <option value="Store">Store</option>
                                 <option value="Online">Online</option>
-                                <option value="Auction">Auction</option>
-                                <option value="Gift">Gift</option>
+                                <option value="Auction">Leilão</option>
+                                <option value="Gift">Gift(Presente)</option>
                             </select>
                         </div>
                     </div>
@@ -130,7 +126,7 @@
                 class="relative z-10 px-6 py-4 border-b border-black/10 dark:border-white/5 bg-white/40 dark:bg-black/40 backdrop-blur flex items-center justify-between shadow-sm">
                 <div>
                     <h3 class="text-ink-main dark:text-white font-display font-bold text-lg">Album Tracks</h3>
-                    <p class="text-ink-muted dark:text-[#8e8672] text-[10px] font-mono uppercase">Metadata Sequence</p>
+                    <p class="text-ink-muted dark:text-[#8e8672] text-[10px] font-mono uppercase">Sequência de Metadados</p>
                 </div>
                 <div class="flex flex-col items-end">
                     <div
@@ -143,7 +139,7 @@
                             / 64</span>
                     </div>
                     <span
-                        class="text-ink-muted dark:text-[#5a5445] text-[9px] font-mono mt-1 tracking-widest font-bold uppercase">Limit</span>
+                        class="text-ink-muted dark:text-[#5a5445] text-[9px] font-mono mt-1 tracking-widest font-bold uppercase">Limite</span>
                 </div>
             </div>
 
@@ -155,7 +151,7 @@
                 <button type="button" onclick="openTrackModalFromAlbum()"
                     class="w-full flex items-center justify-center gap-2 py-3 border border-dashed border-ink-muted/50 rounded text-ink-muted dark:text-[#8e8672] hover:text-primary hover:border-primary/50 hover:bg-primary/5 transition-all group shadow-sm bg-white/20 dark:bg-black/20">
                     <span class="material-symbols-outlined group-hover:scale-110 transition-transform">add_circle</span>
-                    <span class="font-mono text-xs uppercase tracking-widest font-bold">Add Track</span>
+                    <span class="font-mono text-xs uppercase tracking-widest font-bold">Adicionar Track</span>
                 </button>
             </div>
         </div>
@@ -164,12 +160,12 @@
     <div
         class="h-20 border-t border-border-light dark:border-[#393528] bg-panel-light dark:bg-[#12100c] shrink-0 flex items-center justify-end px-8 gap-4 z-20 shadow-lg">
         <button onclick="closeModal()"
-            class="px-6 py-2.5 rounded text-ink-muted dark:text-[#8e8672] text-xs font-mono font-bold tracking-widest hover:text-ink-main dark:hover:text-white transition-colors uppercase">Discard</button>
+            class="px-6 py-2.5 rounded text-ink-muted dark:text-[#8e8672] text-xs font-mono font-bold tracking-widest hover:text-ink-main dark:hover:text-white transition-colors uppercase">Descartar</button>
         <button type="submit" form="album-form"
             class="px-8 py-2.5 rounded bg-gradient-to-b from-[#f4c025] to-[#b58d17] text-[#181611] text-xs font-mono font-bold tracking-widest shadow-amber-glow hover:brightness-110 active:scale-95 transition-all uppercase border border-[#f4c025]/50 relative overflow-hidden group">
             <span
                 class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></span>
-            <span class="relative z-10">Save Album</span>
+            <span class="relative z-10">Salvar Album</span>
         </button>
     </div>
 </div>
