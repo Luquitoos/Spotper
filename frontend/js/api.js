@@ -1,5 +1,5 @@
-const API_BASE_URL = 'http://localhost:5001/api';
-// Lucas, quando tu for rodar no teu computador, troca a porta padrão de 8080 para outra, pois dependendo do computador não vai rodar. Já que o Flask pode estar rodando outra coisa
+const API_BASE_URL = 'http://localhost:8080/api';
+// quando o senhor for rodar, pode ser necessário a troca a porta padrão de 8080 para outra, pois dependendo do computador não vai rodar, pois a porta pode estar ocupada
 class SpotPerAPI {
     constructor(baseURL = API_BASE_URL) {
         this.baseURL = baseURL;
