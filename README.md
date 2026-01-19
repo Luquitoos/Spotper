@@ -60,7 +60,9 @@ O backend é desenvolvido em **Python** usando **Flask**.
    ```powershell
    python app.py
    ```
-   - A API ficará disponível em `http://127.0.0.1:5001 (ou similar)`.
+   - A API ficará disponível em `http://127.0.0.1:5001`.
+
+   Caso queira mudar a porta é só ir em `backend\config\database` e editar o port para a porta desejada
 
 ---
 
@@ -71,7 +73,7 @@ O frontend consiste em arquivos estáticos HTML/CSS/JS. Não requer compilação
 ### Importante, ao rodar o backend voce verá no terminal o localhost//{porta}
 Voce deve garantir que a porta do backend se comunica com o front.
 
-Vá em `frontend\js\api.js` e no `const API_BASE_URL = 'http://localhost:5001/api';` modifique para porta que esta o backendo, caso ja seja 5001 mantenha da maneira que esta
+Vá em `frontend\js\api.js` e no `const API_BASE_URL = 'http://localhost:5001/api';` modifique para porta que esta o backend, caso ja seja 5001 mantenha da maneira que esta
 
 ### Opção A – Live Server (VS Code) – *Fácil*
 1. Abra a pasta `frontend` no VS Code.
