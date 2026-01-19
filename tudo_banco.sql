@@ -1,46 +1,48 @@
-CREATE DATABASE BDSpotPer
+-- Script comentado dizendo já os requisitos cumpridos, a logica da consulta e onde é utilizada no banco de dados. Acredito que facilite a correção
+
+CREATE DATABASE SpotPer
 ON PRIMARY 
 (
-    NAME = 'BDSpotPer_P',
-    FILENAME = 'C:\SQLData\BDSpotPer_P.mdf',
+    NAME = 'SpotPer_P',
+    FILENAME = 'C:\SQLData\SpotPer_P.mdf',
     SIZE = 50MB,
     MAXSIZE = UNLIMITED,
     FILEGROWTH = 10MB
 ),
 FILEGROUP FG_GERAL
 (
-    NAME = 'BDSpotPer_Geral_01',
-    FILENAME = 'C:\SQLData\BDSpotPer_Geral_1.ndf',
+    NAME = 'SpotPer_Geral_01',
+    FILENAME = 'C:\SQLData\SpotPer_Geral_1.ndf',
     SIZE = 50MB,
     MAXSIZE = UNLIMITED,
     FILEGROWTH = 10MB
 ),
 (
-    NAME = 'BDSpotPer_Geral_02',
-    FILENAME = 'C:\SQLData\BDSpotPer_Geral_2.ndf',
+    NAME = 'SpotPer_Geral_02',
+    FILENAME = 'C:\SQLData\SpotPer_Geral_2.ndf',
     SIZE = 50MB,
     MAXSIZE = UNLIMITED,
     FILEGROWTH = 10MB
 ),
 FILEGROUP FG_PLAYLISTS
 (
-    NAME = 'BDSpotPer_Playlists_01',
-    FILENAME = 'C:\SQLData\BDSpotPer_Playlists_1.ndf',
+    NAME = 'SpotPer_Playlists_01',
+    FILENAME = 'C:\SQLData\SpotPer_Playlists_1.ndf',
     SIZE = 50MB,
     MAXSIZE = UNLIMITED,
     FILEGROWTH = 10MB
 )
 LOG ON
 (
-    NAME = 'BDSpotPer_Log',
-    FILENAME = 'C:\SQLLogs\BDSpotPer_Log.ldf',
+    NAME = 'SpotPer_Log',
+    FILENAME = 'C:\SQLLogs\SpotPer_Log.ldf',
     SIZE = 25MB,
     MAXSIZE = UNLIMITED,
     FILEGROWTH = 5MB
 );
 GO
 
-USE BDSpotPer;
+USE SpotPer;
 GO
 
 SET ANSI_NULLS ON;
@@ -410,7 +412,7 @@ AS
 GO
 
 -- Trigger: Atende ao requisito (iii.b).CDs exigem gravação ADD/DDD. Vinil/Download não podem ter tipo de gravação.
--- Lógica: Verifica se álbum é CD e gravacao é NULL (erro), ou se é Vinil/Download e gravacao NÃO é NULL (erro).
+-- Lógica: Verifica se álbum é CD e gravacao é NULL (erro), ou se é Vinil/Download e gravacao não é NULL (erro).
 -- Uso no Backend: Disparado automaticamente ao inserir/atualizar faixas via routes/tracks.py (criar_faixa, atualizar_faixa).
 CREATE TRIGGER VALIDAR_TIPO_GRAVACAO_FAIXA
 ON dbo.FAIXA
