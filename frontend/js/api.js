@@ -1,5 +1,6 @@
-const API_BASE_URL = 'http://localhost:8080/api';
-// quando o senhor for rodar, pode ser necessário a troca a porta padrão de 8080 para outra, pois dependendo do computador não vai rodar, pois a porta pode estar ocupada
+const API_BASE_URL = 'http://localhost:5001/api';
+// quando o senhor for rodar, pode ser necessário a troca a porta para outra, pois dependendo do computador não vai rodar, pois a porta pode estar ocupada, aqui deve ser sempre a porta do backend
+// então se necessario mude a porta do back e dps mude a porta aqui
 class SpotPerAPI {
     constructor(baseURL = API_BASE_URL) {
         this.baseURL = baseURL;

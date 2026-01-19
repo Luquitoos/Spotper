@@ -60,13 +60,18 @@ O backend é desenvolvido em **Python** usando **Flask**.
    ```powershell
    python app.py
    ```
-   - A API ficará disponível em `http://127.0.0.1:5000`.
+   - A API ficará disponível em `http://127.0.0.1:5001 (ou similar)`.
 
 ---
 
 ## 3. Configuração do Frontend
 
 O frontend consiste em arquivos estáticos HTML/CSS/JS. Não requer compilação, apenas um servidor HTTP simples para evitar restrições de CORS.
+
+### Importante, ao rodar o backend voce verá no terminal o localhost//{porta}
+Voce deve garantir que a porta do backend se comunica com o front.
+
+Vá em `frontend\js\api.js` e no `const API_BASE_URL = 'http://localhost:5001/api';` modifique para porta que esta o backendo, caso ja seja 5001 mantenha da maneira que esta
 
 ### Opção A – Live Server (VS Code) – *Fácil*
 1. Abra a pasta `frontend` no VS Code.
@@ -76,13 +81,16 @@ O frontend consiste em arquivos estáticos HTML/CSS/JS. Não requer compilação
 ### Opção B – Servidor Python
 ```powershell
 cd frontend
-python -m http.server 8000
+python -m http.server 5000
 ```
-Acesse `http://localhost:8000`.
+Acesse `http://localhost:5000`.
 
 ---
 
 ## Como Utilizar o SpotPer
+
+### Povoamento (RECOMENDADO)
+Ao clicar no botão povoar será realizado o povoamento do banco de dados de forma completa, economizando tempo para testar as funcionalidades
 
 ### Fluxo Esperado
 1. **Home** – Visão geral com acesso rápido às funcionalidades.

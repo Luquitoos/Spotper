@@ -1,17 +1,3 @@
-"""
-Povoamento completo do banco de dados BDSpotPer
-Este script popula todas as tabelas com dados realistas para testes,
-incluindo casos de borda e dados específicos para validar as consultas.
-
-Regras respeitadas:
-- data_gravacao > 01.01.2000
-- CD requer tipo_gravacao ADD ou DDD
-- VINIL/DOWNLOAD não podem ter tipo_gravacao
-- Barroco exige DDD
-- Preço <= 3 * média de álbuns all-DDD
-- Max 64 faixas por álbum
-"""
-
 from datetime import date, datetime
 import random
 
@@ -19,7 +5,7 @@ import random
 from config.database import get_conexao
 
 def limpar_dados(cursor):
-    """Remove todos os dados existentes na ordem correta (respeitando FKs)"""
+    # Remove todos os dados existentes na ordem correta (respeitando FKs)
     print("Limpando dados existentes...")
     cursor.execute("DELETE FROM PLAYLIST_FAIXA")
     cursor.execute("DELETE FROM PLAYLIST")
@@ -43,7 +29,7 @@ def limpar_dados(cursor):
     print("Dados limpos com sucesso!")
 
 def povoar_periodos(cursor):
-    """Insere períodos musicais"""
+    # Insere períodos musicais
     print("Inserindo períodos musicais...")
     periodos = [
         ('Idade Média', 500, 1400),
@@ -61,7 +47,7 @@ def povoar_periodos(cursor):
     print(f"  {len(periodos)} períodos inseridos")
 
 def povoar_compositores(cursor):
-    """Insere compositores de vários períodos"""
+    # Insere compositores de vários períodos
     print("Inserindo compositores...")
     
     # Buscar IDs dos períodos
@@ -102,7 +88,7 @@ def povoar_compositores(cursor):
     print(f"  {len(compositores)} compositores inseridos")
 
 def povoar_interpretes(cursor):
-    """Insere intérpretes de vários tipos"""
+    # Insere intérpretes de vários tipos
     print("Inserindo intérpretes...")
     interpretes = [
         ('Berliner Philharmoniker', 'Orquestra'),
@@ -132,7 +118,7 @@ def povoar_interpretes(cursor):
     print(f"  {len(interpretes)} intérpretes inseridos")
 
 def povoar_tipos_composicao(cursor):
-    """Insere tipos de composição"""
+    # Insere tipos de composição
     print("Inserindo tipos de composição...")
     tipos = [
         'Sinfonia',
@@ -159,7 +145,7 @@ def povoar_tipos_composicao(cursor):
     print(f"  {len(tipos)} tipos inseridos")
 
 def povoar_gravadoras(cursor):
-    """Insere gravadoras com telefones"""
+    # Insere gravadoras com telefones
     print("Inserindo gravadoras...")
     gravadoras = [
         ('Deutsche Grammophon', 'Hamburgo, Alemanha', 'https://www.deutschegrammophon.com', 
@@ -194,7 +180,7 @@ def povoar_gravadoras(cursor):
     print(f"  {len(gravadoras)} gravadoras inseridas")
 
 def povoar_albuns_e_faixas(cursor):
-    """Insere álbuns com suas faixas, respeitando todas as regras"""
+    # Insere álbuns com suas faixas, respeitando todas as regras
     print("Inserindo álbuns e faixas...")
     
     # Buscar IDs - mapear por NOME para garantir integridade
@@ -549,7 +535,7 @@ def povoar_playlists(cursor):
     Cria playlists específicas para testar as consultas:
     - Consulta b: Playlists com Dvorak (Deutsche Grammophon terá mais)
     - Consulta c: Compositor com mais faixas em playlists
-    - Consulta d: Playlist 100% Concerto + Barroco
+    - Consulta d: Playlist Concerto + Barroco
     """
     print("Inserindo playlists...")
     
@@ -666,7 +652,7 @@ def povoar_playlists(cursor):
     print(f"  {len([p for p in playlists if p['faixas']])} playlists inseridas")
 
 def executar_povoamento():
-    """Executa todo o povoamento"""
+    # Executa todo o povoamento
     print("\n" + "="*60)
     print("POVOAMENTO DO BANCO DE DADOS BDSPOTPER")
     print("="*60 + "\n")
