@@ -1,18 +1,8 @@
-USE master;
-GO
-
-IF EXISTS (SELECT name FROM sys.databases WHERE name = 'BDSpotPer')
-BEGIN
-    ALTER DATABASE BDSpotPer SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE BDSpotPer;
-END
-GO
-
 CREATE DATABASE BDSpotPer
 ON PRIMARY 
 (
-    NAME = 'BDSpotPer_Primary',
-    FILENAME = 'C:\SQLData\BDSpotPer_Primary.mdf',
+    NAME = 'BDSpotPer_P',
+    FILENAME = 'C:\SQLData\BDSpotPer_P.mdf',
     SIZE = 50MB,
     MAXSIZE = UNLIMITED,
     FILEGROWTH = 10MB
@@ -20,14 +10,14 @@ ON PRIMARY
 FILEGROUP FG_GERAL
 (
     NAME = 'BDSpotPer_Geral_01',
-    FILENAME = 'C:\SQLData\BDSpotPer_Geral_01.ndf',
+    FILENAME = 'C:\SQLData\BDSpotPer_Geral_1.ndf',
     SIZE = 50MB,
     MAXSIZE = UNLIMITED,
     FILEGROWTH = 10MB
 ),
 (
     NAME = 'BDSpotPer_Geral_02',
-    FILENAME = 'C:\SQLData\BDSpotPer_Geral_02.ndf',
+    FILENAME = 'C:\SQLData\BDSpotPer_Geral_2.ndf',
     SIZE = 50MB,
     MAXSIZE = UNLIMITED,
     FILEGROWTH = 10MB
@@ -35,7 +25,7 @@ FILEGROUP FG_GERAL
 FILEGROUP FG_PLAYLISTS
 (
     NAME = 'BDSpotPer_Playlists_01',
-    FILENAME = 'C:\SQLData\BDSpotPer_Playlists_01.ndf',
+    FILENAME = 'C:\SQLData\BDSpotPer_Playlists_1.ndf',
     SIZE = 50MB,
     MAXSIZE = UNLIMITED,
     FILEGROWTH = 10MB
