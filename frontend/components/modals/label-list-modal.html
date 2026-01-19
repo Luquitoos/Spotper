@@ -5,9 +5,8 @@
     <div
       class="flex items-center justify-between px-8 py-6 border-b border-stone-300/50 bg-white/40 backdrop-blur-md shrink-0">
       <div class="flex flex-col gap-1">
-        <h2 class="text-stone-900 text-3xl font-bold leading-tight tracking-tight font-display">Gravadoras</h2>
-        <p class="text-stone-500 text-sm font-body tracking-wide">
-Gerencie suas fontes de catálogo de música clássica</p>
+        <h2 class="text-stone-900 text-3xl font-bold leading-tight tracking-tight font-display">Record Labels</h2>
+        <p class="text-stone-500 text-sm font-body tracking-wide">Manage your classical music catalog sources</p>
       </div>
       <button onclick="closeModal()"
         class="flex items-center justify-center w-10 h-10 rounded-full bg-black/5 hover:bg-primary/20 text-stone-600 hover:text-primary transition-all duration-300 group cursor-pointer border border-transparent hover:border-primary/30">
@@ -26,14 +25,14 @@ Gerencie suas fontes de catálogo de música clássica</p>
           </div>
           <p
             class="text-stone-500 group-hover:text-primary font-mono text-sm tracking-[0.2em] font-medium transition-colors duration-300">
-            Adicionar Gravadora</p>
+            ADD LABEL</p>
         </button>
         <div id="labels-container" class="contents"></div>
       </div>
     </div>
 
     <div class="px-8 py-3 bg-stone-100 border-t border-stone-200 flex justify-between items-center shrink-0">
-      <p class="text-stone-500 text-xs">Total de Gravadoras: <span id="labels-count">0</span></p>
+      <p class="text-stone-500 text-xs">Total Labels: <span id="labels-count">0</span></p>
       <div class="flex gap-2 items-center">
         <span class="w-2 h-2 rounded-full bg-green-500/80"></span>
         <span class="text-stone-500 text-xs">Online</span>
@@ -45,9 +44,8 @@ Gerencie suas fontes de catálogo de música clássica</p>
     <div
       class="flex items-center justify-between px-8 py-6 border-b border-white/10 bg-white/5 backdrop-blur-md shrink-0">
       <div class="flex flex-col gap-1">
-        <h2 class="text-white text-3xl font-bold leading-tight tracking-tight font-display">Gravadoras</h2>
-        <p class="text-white/40 text-sm font-body tracking-wide">
-Gerencie suas fontes de catálogo de música clássica</p>
+        <h2 class="text-white text-3xl font-bold leading-tight tracking-tight font-display">Record Labels</h2>
+        <p class="text-white/40 text-sm font-body tracking-wide">Manage your classical music catalog sources</p>
       </div>
       <button onclick="closeModal()"
         class="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 hover:bg-primary/20 text-white hover:text-primary transition-all duration-300">
@@ -65,7 +63,7 @@ Gerencie suas fontes de catálogo de música clássica</p>
           </div>
           <p
             class="text-stone-400 group-hover:text-primary font-mono text-sm tracking-[0.2em] font-medium transition-colors duration-300">
-            Adicionar Gravadora</p>
+            ADD LABEL</p>
         </button>
 
         <div id="labels-container-dark" class="contents"></div>
@@ -73,7 +71,7 @@ Gerencie suas fontes de catálogo de música clássica</p>
     </div>
 
     <div class="px-8 py-3 bg-black/40 border-t border-white/5 flex justify-between items-center shrink-0">
-      <p class="text-stone-500 text-xs">Gravadoras: <span id="labels-count-dark">0</span></p>
+      <p class="text-stone-500 text-xs">Total Labels: <span id="labels-count-dark">0</span></p>
       <div class="flex gap-2 items-center">
         <span class="w-2 h-2 rounded-full bg-green-500/50"></span>
         <span class="text-stone-500 text-xs">Online</span>
@@ -82,16 +80,16 @@ Gerencie suas fontes de catálogo de música clássica</p>
   </div>
 </div>
 <script>
- 
+  // Ajuste para preencher o container correto conforme o tema
   (function () {
     try {
       const isDark = document.documentElement.classList.contains('dark');
       const src = document.getElementById('labels-container');
       const srcDark = document.getElementById('labels-container-dark');
-      // já havia itens preenchidos pelo JS anterior, então agora acho que clona para o visível
+      // Se já havia itens preenchidos pelo JS anterior, clona para o visível
       if (isDark && src && src.children.length && srcDark) {
         srcDark.innerHTML = src.innerHTML;
-
+        // Atualiza contagem
         const count = srcDark.querySelectorAll('[data-label-card]').length || srcDark.children.length;
         const el = document.getElementById('labels-count-dark'); if (el) el.textContent = count;
       } else if (!isDark && srcDark && srcDark.children.length && src) {

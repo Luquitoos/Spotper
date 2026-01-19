@@ -1,3 +1,8 @@
+// spotper/js/app.js
+// Frontend-only SPA controller (no backend yet; no mock seeded data).
+
+/* global openModal */
+
 const SpotPerState = {
   view: 'albums',
   filters: {
@@ -11,11 +16,13 @@ const SpotPerState = {
     albumId: null,
     playlistId: null
   },
+  // Context for auto-fill when creating new entities
   context: {
-    periodId: null, 
-    composerId: null,
-    interpreterId: null 
+    periodId: null,      // Currently selected period - auto-fills compositor.cod_periodo
+    composerId: null,    // Currently selected composer
+    interpreterId: null  // Currently selected interpreter
   },
+  // IMPORTANT: Data starts empty until backend is integrated.
   cache: {
     periods: [],
     compositionTypes: [],
@@ -24,7 +31,7 @@ const SpotPerState = {
     interpreters: [],
     albums: [],
     playlists: [],
-    queryResults: {}
+    queryResults: {} // Results from DB views (ALBUNS_ACIMA_MEDIA, etc.)
   }
 };
 
@@ -48,8 +55,10 @@ async function initApp() {
   bindGlobalActions();
   renderAll();
 
+  // Enable drag-to-scroll on carousels
   initCarouselDragScroll();
 
+  // Enable drag-to-resize on catalog section
   initCatalogResize();
 }
 
@@ -134,6 +143,7 @@ function bindGlobalActions() {
       return;
     }
 
+    // Edit playlist
     const editPlaylistBtn = e.target.closest('[data-action="edit-playlist"]');
     if (editPlaylistBtn) {
       e.stopPropagation();
@@ -235,6 +245,9 @@ async function loadFormatFilters() {
   if (el) el.innerHTML = html;
 }
 
+// ----------------------------
+// Rendering
+// ----------------------------
 
 function renderAll() {
   renderPeriods();
@@ -257,6 +270,7 @@ function renderAlbums() {
   const area = document.getElementById('content-area');
   if (!area) return;
 
+  // Check if structure already exists
   let grid = document.getElementById('album-grid');
 
   if (!grid) {
@@ -278,9 +292,11 @@ function renderAlbums() {
     `;
     grid = document.getElementById('album-grid');
 
+    // Ensure input value is in sync (in case state has value but HTML was just created)
     const searchInput = document.getElementById('album-catalog-search');
     if (searchInput && SpotPerState.filters.search) {
       searchInput.value = SpotPerState.filters.search;
+      // Focus if we just created it and have value (implies re-render while searching)
       searchInput.focus();
     }
   }
@@ -321,23 +337,26 @@ function applyAlbumFilters(albums) {
   const { mediaType, search, periodId, composerId } = SpotPerState.filters;
   let result = albums.slice();
 
-
+  // Filter by media type
   if (mediaType && mediaType !== 'ALL') {
     result = result.filter((a) => a.tipo_midia === mediaType);
   }
 
+  // Filter by period (album must have at least one composer from selected period)
   if (periodId) {
     result = result.filter((a) =>
       a.compositor_period_ids && a.compositor_period_ids.includes(periodId)
     );
   }
 
+  // Filter by composer (album must have this composer)
   if (composerId) {
     result = result.filter((a) =>
       a.compositor_ids && a.compositor_ids.includes(composerId)
     );
   }
 
+  // Filter by interpreter (album must have this interpreter)
   const { interpreterId } = SpotPerState.filters;
   if (interpreterId) {
     result = result.filter((a) =>
@@ -345,6 +364,7 @@ function applyAlbumFilters(albums) {
     );
   }
 
+  // Filter by search term
   if (search && search.trim()) {
     const t = search.trim().toLowerCase();
     result = result.filter((a) =>
@@ -461,7 +481,7 @@ async function renderTracksCatalog() {
   const area = document.getElementById('content-area');
   if (!area) return;
 
-
+  // Show loading state
   area.innerHTML = `
     <div class="flex items-center justify-between mb-4">
       <div>
@@ -472,6 +492,7 @@ async function renderTracksCatalog() {
   `;
 
   try {
+    // Fetch tracks with all current filters
     const { mediaType, periodId, composerId, interpreterId } = SpotPerState.filters;
     const tracks = await api.listTracks({
       tipoMidia: mediaType,
@@ -480,6 +501,7 @@ async function renderTracksCatalog() {
       interpreterId: interpreterId
     });
 
+    // Cache tracks
     SpotPerState.cache.tracks = tracks;
 
     area.innerHTML = `
@@ -579,6 +601,7 @@ function renderQueries() {
     </div>
   `;
 
+  // Attach event listeners for execute buttons
   document.querySelectorAll('[data-query-execute]').forEach(btn => {
     btn.addEventListener('click', () => executeQuery(btn.dataset.queryExecute));
   });
@@ -660,6 +683,7 @@ function renderQueryResults(viewName, results) {
 
   let html = '<table class="w-full text-sm"><thead class="border-b border-border-light dark:border-border-dark"><tr>';
 
+  // Dynamic headers based on view
   const headers = Object.keys(results[0]);
   headers.forEach(h => {
     html += `<th class="text-left py-2 px-2 text-ink-muted dark:text-[#8e8672] font-mono text-xs uppercase">${h.replace('_', ' ')}</th>`;
@@ -680,14 +704,20 @@ function renderQueryResults(viewName, results) {
   return html;
 }
 
+// ----------------------------
+// Details + Edit/Delete (UI only)
+// ----------------------------
 
 async function openAlbumDetails(codAlbum) {
   const album = SpotPerState.cache.albums.find((a) => a.cod_album === codAlbum);
 
+  // Store album ID for reference
   SpotPerState.selection.albumId = codAlbum;
 
+  // Open the dedicated album-details modal
   await openModal('album-details');
 
+  // Populate modal with album data after it loads
   const titleEl = document.getElementById('album-details-title');
   const descEl = document.getElementById('album-details-description');
   const recordedEl = document.getElementById('album-details-recorded');
@@ -700,20 +730,23 @@ async function openAlbumDetails(codAlbum) {
     if (titleEl) titleEl.textContent = album.nome || 'Sem título';
     if (descEl) descEl.textContent = album.descricao || 'Sem descrição disponível';
     if (recordedEl) {
+      // Format date if needed, or show raw
       recordedEl.textContent = album.data_gravacao || '—';
     }
+    // Duration will be calculated from tracks, set placeholder
     if (durationEl) durationEl.textContent = 'Calculando...';
 
     if (trackCountEl) trackCountEl.textContent = album.qtd_faixas || '0';
     if (coverEl && album.img) {
       coverEl.style.backgroundImage = `url('${album.img}')`;
-      coverEl.innerHTML = ''; 
+      coverEl.innerHTML = ''; // Remove placeholder icon
     }
     if (editBtn) {
- 
+      // Hiding edit button as per request to remove album editing
       editBtn.style.display = 'none';
     }
 
+    // New fields: media type, purchase date, price
     const mediaTypeEl = document.getElementById('album-details-media-type');
     const purchaseDateEl = document.getElementById('album-details-purchase-date');
     const priceEl = document.getElementById('album-details-price');
@@ -726,6 +759,7 @@ async function openAlbumDetails(codAlbum) {
     }
   }
 
+  // Load tracks from backend API
   try {
     const tracks = await api.getAlbumTracks(codAlbum);
     renderAlbumDetailTracks(tracks, codAlbum);
@@ -734,6 +768,9 @@ async function openAlbumDetails(codAlbum) {
   }
 }
 
+/**
+ * Renders tracks in the album details modal
+ */
 function renderAlbumDetailTracks(tracks, codAlbum) {
   const tbody = document.getElementById('album-details-tracks');
   const emptyDiv = document.getElementById('album-details-empty');
@@ -751,6 +788,7 @@ function renderAlbumDetailTracks(tracks, codAlbum) {
 
   if (emptyDiv) emptyDiv.classList.add('hidden');
 
+  // Calculate total duration
   const totalSeconds = tracks.reduce((sum, t) => sum + (t.tempo_execucao || 0), 0);
   const hours = Math.floor(totalSeconds / 3600);
   const mins = Math.floor((totalSeconds % 3600) / 60);
@@ -811,6 +849,7 @@ function openAlbumEdit(codAlbum) {
       if (label) label.textContent = 'Save Changes';
     }
 
+    // Fill minimal fields
     setInputValue(container, '#album-nome', album.nome);
     setInputValue(container, '#album-descricao', album.descricao);
   });
@@ -821,20 +860,23 @@ async function openPlaylistEdit(codPlaylist) {
   if (!playlist) return;
 
   try {
+    // Fetch existing tracks for this playlist
     const tracks = await api.getPlaylistTracks(codPlaylist);
 
+    // Open modal with edit data pre-filled
     await openModalForEdit('playlist', codPlaylist, {
       nome: playlist.nome,
       tracks: tracks.map(t => ({
         cod_album: t.cod_album,
         numero_unidade: t.numero_unidade,
         numero_faixa: t.numero_faixa,
-        descricao: t.nome_faixa,   
-        album_nome: t.nome_album, 
+        descricao: t.nome_faixa,      // Template expects 'descricao'
+        album_nome: t.nome_album,      // Template expects 'album_nome'
         tempo_execucao: t.tempo_execucao
       }))
     });
 
+    // Update modal title for edit mode
     const titleEl = document.querySelector('#modal-content h2');
     if (titleEl) titleEl.textContent = 'Editar Playlist';
 
@@ -873,6 +915,9 @@ async function deleteAlbumUI(codAlbum) {
   });
 }
 
+/**
+ * Exibe modal de confirmação para exclusão
+ */
 function showDeleteConfirmation({ title, message, warning, onConfirm }) {
   const overlay = document.getElementById('modal-overlay');
   const content = document.getElementById('modal-content');
@@ -910,7 +955,7 @@ function showDeleteConfirmation({ title, message, warning, onConfirm }) {
     </div>
   `;
 
-
+  // Attach confirm handler
   document.getElementById('confirm-delete-btn').onclick = onConfirm;
 }
 
@@ -937,6 +982,7 @@ function openPlaylistDetails(codPlaylist) {
 
   openModal('playlist-details');
 
+  // Populate modal with playlist data after it loads
   queueMicrotask(async () => {
     try {
       const [playlist, tracks] = await Promise.all([
@@ -944,6 +990,7 @@ function openPlaylistDetails(codPlaylist) {
         api.getPlaylistTracks(codPlaylist)
       ]);
 
+      // Populate header fields
       const titleEl = document.getElementById('playlist-details-title');
       const createdEl = document.getElementById('playlist-details-created');
       const durationEl = document.getElementById('playlist-details-duration');
@@ -991,7 +1038,9 @@ function openPlaylistDetails(codPlaylist) {
   });
 }
 
-
+/**
+ * Renders tracks in the playlist details modal
+ */
 function renderPlaylistDetailTracks(tracks, codPlaylist) {
   const tbody = document.getElementById('playlist-details-tracks');
   const emptyDiv = document.getElementById('playlist-details-empty');
@@ -1034,22 +1083,29 @@ function renderPlaylistDetailTracks(tracks, codPlaylist) {
   }).join('');
 }
 
+/**
+ * Registers playback of a track in a playlist
+ */
 async function registerPlayback(codPlaylist, codAlbum, numeroUnidade, numeroFaixa) {
   try {
     await api.registerPlayback(codPlaylist, codAlbum, numeroUnidade, numeroFaixa);
+    // Refresh the playlist view to show updated play count
     openPlaylistDetails(codPlaylist);
   } catch (error) {
     console.error('Erro ao registrar reprodução:', error);
   }
 }
 
-
+// Export for global use
 window.registerPlayback = registerPlayback;
 
+// ----------------------------
+// Filters + UI sync
+// ----------------------------
 
 function switchMainTab(view) {
   SpotPerState.view = view;
-  renderComposerCarousel();
+  renderComposerCarousel(); // Re-render to apply/remove period filter based on view
   renderMain();
 }
 
@@ -1093,15 +1149,17 @@ function syncFormatFilterVisual() {
 }
 
 function setPeriodFilter(codPeriodo, periodName) {
+  // Handle empty string as null (for "Todos" option)
   SpotPerState.filters.periodId = codPeriodo || null;
   SpotPerState.context.periodId = codPeriodo || null;
 
   const sectionTitle = document.getElementById('composer-section-title');
   if (sectionTitle) sectionTitle.textContent = `Selecionar Compositor (${periodName})`;
 
+  // Re-render periods, composers (filtered by period), and main content
   renderPeriods();
-  renderComposerCarousel();
-  SpotPerState.filters.composerId = null; 
+  renderComposerCarousel(); // Re-render to filter by new period
+  SpotPerState.filters.composerId = null; // Reset composer filter when period changes
   renderMain();
 }
 
@@ -1121,11 +1179,12 @@ function renderComposerCarousel() {
 
   let composers = SpotPerState.cache.composers || [];
 
-
+  // Filter composers by period ONLY for albums/tracks views (not playlists)
   if (SpotPerState.view !== 'playlists' && SpotPerState.filters.periodId) {
     composers = composers.filter(c => c.cod_periodo === SpotPerState.filters.periodId);
   }
 
+  // Filter by search term
   const searchTerm = (SpotPerState.filters.composerSearch || '').toLowerCase();
   if (searchTerm) {
     composers = composers.filter(c => c.nome.toLowerCase().includes(searchTerm));
@@ -1133,10 +1192,11 @@ function renderComposerCarousel() {
 
   const isAllActive = !SpotPerState.filters.composerId;
 
-
+  // Check if carousel structure exists
   let itemsContainer = document.getElementById('composer-items-container');
 
   if (!itemsContainer) {
+    // Initial render: search input + items container
     carousel.innerHTML = `
       <div class="flex items-center gap-2 min-w-[160px] mr-2">
         <input type="text" id="composer-search-input" 
@@ -1149,18 +1209,22 @@ function renderComposerCarousel() {
 
     itemsContainer = document.getElementById('composer-items-container');
 
+    // Attach search event
     const searchInput = document.getElementById('composer-search-input');
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
         SpotPerState.filters.composerSearch = e.target.value;
+        // Call directly to update only items
         renderComposerCarousel();
       });
+      // Restore focus/cursor if this was a re-render (fallback)
       if (SpotPerState.filters.composerSearch) {
         searchInput.focus();
       }
     }
   }
 
+  // Static buttons (Novo, Todos)
   let html = `
     <button onclick="openModal('composer')" class="flex flex-col items-center gap-2 group min-w-[80px]">
       <div class="size-20 rounded-full border border-border-light dark:border-[#393528] bg-panel-light dark:bg-[#181611] flex items-center justify-center hover:bg-primary/5 dark:hover:bg-[#23201a] hover:border-primary/50 transition-all shadow-sm group-hover:scale-105">
@@ -1179,6 +1243,7 @@ function renderComposerCarousel() {
     </button>
   `;
 
+  // Render composer items
   composers.forEach(c => {
     const isActive = SpotPerState.filters.composerId === c.cod_compositor;
     const shortName = c.nome.split(' ').slice(-1)[0];
@@ -1208,6 +1273,7 @@ function renderInterpreterCarousel() {
 
   let interpreters = SpotPerState.cache.interpreters || [];
 
+  // Filter by search term
   const searchTerm = (SpotPerState.filters.interpreterSearch || '').toLowerCase();
   if (searchTerm) {
     interpreters = interpreters.filter(i => i.nome.toLowerCase().includes(searchTerm));
@@ -1215,9 +1281,11 @@ function renderInterpreterCarousel() {
 
   const isAllActive = !SpotPerState.filters.interpreterId;
 
+  // Check if carousel structure exists
   let itemsContainer = document.getElementById('interpreter-items-container');
 
   if (!itemsContainer) {
+    // Initial render: search input + items container
     carousel.innerHTML = `
       <div class="flex items-center gap-2 min-w-[160px] mr-2">
         <input type="text" id="interpreter-search-input" 
@@ -1230,6 +1298,7 @@ function renderInterpreterCarousel() {
 
     itemsContainer = document.getElementById('interpreter-items-container');
 
+    // Attach search event
     const searchInput = document.getElementById('interpreter-search-input');
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
@@ -1242,6 +1311,7 @@ function renderInterpreterCarousel() {
     }
   }
 
+  // Static buttons (Novo, Todos)
   let html = `
     <button onclick="openModal('interpreter')" class="flex flex-col items-center gap-2 group min-w-[80px]">
       <div class="size-20 rounded-full border border-border-light dark:border-[#393528] bg-panel-light dark:bg-[#181611] flex items-center justify-center hover:bg-primary/5 hover:border-primary/50 transition-all shadow-sm group-hover:scale-105">
@@ -1260,6 +1330,7 @@ function renderInterpreterCarousel() {
     </button>
   `;
 
+  // Render interpreter items
   interpreters.forEach(i => {
     const isActive = SpotPerState.filters.interpreterId === i.cod_interprete;
     const shortName = i.nome.split(' ').slice(-1)[0];
@@ -1284,10 +1355,12 @@ function renderInterpreterCarousel() {
 }
 
 function syncComposerSelection() {
+  // Re-render to update visual selection
   renderComposerCarousel();
 }
 
 function syncInterpreterSelection() {
+  // Re-render to update visual selection
   renderInterpreterCarousel();
 }
 
@@ -1297,6 +1370,7 @@ function renderPeriods() {
 
   const periods = SpotPerState.cache.periods || [];
 
+  // Start with "Todos" option
   const isAllActive = SpotPerState.filters.periodId === null;
   let html = `
     <div class="group flex items-start gap-4 cursor-pointer period-item" data-action="select-period" data-period-id="" data-period-name="Todos">
@@ -1331,6 +1405,7 @@ function renderPeriods() {
 
   periodList.innerHTML = html;
 
+  // Add create period button
   periodList.insertAdjacentHTML('beforeend', `
     <div class="group flex items-start gap-4 cursor-pointer mt-4" onclick="openModal('period')">
       <div class="relative shrink-0 pt-1">
@@ -1345,6 +1420,9 @@ function renderPeriods() {
   `);
 }
 
+// ----------------------------
+// Utils
+// ----------------------------
 
 function escapeHtml(input) {
   return String(input ?? '')
@@ -1363,6 +1441,7 @@ async function povoarDados() {
     return;
   }
 
+  // Show loading state
   const btn = document.querySelector('[onclick*="povoarDados"]');
   let originalText = '';
   if (btn) {
@@ -1384,7 +1463,9 @@ async function povoarDados() {
   }
 }
 
-
+/**
+ * Enables drag-to-scroll functionality on a scrollable element
+ */
 function enableDragScroll(element) {
   if (!element || element._dragScrollEnabled) return;
 
@@ -1395,6 +1476,7 @@ function enableDragScroll(element) {
   let scrollLeft;
 
   element.addEventListener('mousedown', (e) => {
+    // Don't drag if clicking on interactive elements
     if (e.target.closest('button, a, input')) return;
 
     isDown = true;
@@ -1420,14 +1502,17 @@ function enableDragScroll(element) {
     if (!isDown) return;
     e.preventDefault();
     const x = e.pageX - element.offsetLeft;
-    const walk = (x - startX) * 1.5; 
+    const walk = (x - startX) * 1.5; // Scroll speed multiplier
     element.scrollLeft = scrollLeft - walk;
   });
 
-
+  // Set initial cursor
   element.style.cursor = 'grab';
 }
 
+/**
+ * Initialize drag scroll on carousels
+ */
 function initCarouselDragScroll() {
   const composerCarousel = document.getElementById('composer-carousel');
   const interpreterCarousel = document.getElementById('interpreter-carousel');
@@ -1436,10 +1521,15 @@ function initCarouselDragScroll() {
   if (interpreterCarousel) enableDragScroll(interpreterCarousel);
 }
 
+// Export globally
 window.povoarDados = povoarDados;
 window.enableDragScroll = enableDragScroll;
 window.initCarouselDragScroll = initCarouselDragScroll;
 
+/**
+ * Initialize drag-to-resize on catalog section
+ * Dragging up shrinks the composer section, dragging down expands it
+ */
 function initCatalogResize() {
   const resizeHandle = document.getElementById('catalog-resize-handle');
   const composerSection = document.getElementById('composer-section');
@@ -1456,12 +1546,13 @@ function initCatalogResize() {
   let startY = 0;
   let startComposerHeight = 0;
   const minComposerHeight = 60;
-  let maxComposerHeight = 400;
+  let maxComposerHeight = 400; // Will be updated to initial height
 
+  // Get initial height after a short delay to ensure content is loaded
   let initialComposerHeight = 200;
   setTimeout(() => {
     initialComposerHeight = composerSection.offsetHeight || 200;
-    maxComposerHeight = Math.max(400, initialComposerHeight);
+    maxComposerHeight = Math.max(400, initialComposerHeight); // Allow returning to original size
     console.log('[SpotPer] Initial composer height:', initialComposerHeight, 'Max:', maxComposerHeight);
   }, 500);
 
@@ -1470,6 +1561,7 @@ function initCatalogResize() {
     startY = clientY;
     startComposerHeight = composerSection.offsetHeight;
 
+    // Visual feedback
     resizeHandle.style.backgroundColor = 'rgba(244, 192, 37, 0.3)';
     document.body.style.cursor = 'ns-resize';
     document.body.style.userSelect = 'none';
@@ -1484,10 +1576,13 @@ function initCatalogResize() {
     const deltaY = clientY - startY;
     let newHeight = startComposerHeight + deltaY;
 
+    // Clamp
     newHeight = Math.max(minComposerHeight, Math.min(maxComposerHeight, newHeight));
 
+    // Apply height
     composerSection.style.height = `${newHeight}px`;
 
+    // Scale items proportionally
     const currentInitialHeight = initialComposerHeight || startComposerHeight;
     const scale = Math.max(0.4, Math.min(1, newHeight / currentInitialHeight));
 
@@ -1497,6 +1592,7 @@ function initCatalogResize() {
       item.style.transformOrigin = 'left center';
     });
 
+    // Hide labels when small
     const labels = composerSection.querySelectorAll('.text-xs.font-mono.tracking-widest');
     labels.forEach(label => {
       label.style.opacity = newHeight < 100 ? '0' : '1';
@@ -1504,6 +1600,7 @@ function initCatalogResize() {
       label.style.marginBottom = newHeight < 100 ? '0' : '';
     });
 
+    // Hide title when very small
     const titleContainer = composerSection.querySelector('.flex.items-center.justify-between');
     if (titleContainer) {
       titleContainer.style.opacity = newHeight < 80 ? '0' : '1';
@@ -1523,6 +1620,7 @@ function initCatalogResize() {
     console.log('[SpotPer] Resize stopped. New height:', composerSection.offsetHeight);
   }
 
+  // Mouse events
   resizeHandle.addEventListener('mousedown', (e) => {
     e.preventDefault();
     startResize(e.clientY);
@@ -1536,6 +1634,7 @@ function initCatalogResize() {
     stopResize();
   });
 
+  // Touch events
   resizeHandle.addEventListener('touchstart', (e) => {
     const touch = e.touches[0];
     startResize(touch.clientY);
