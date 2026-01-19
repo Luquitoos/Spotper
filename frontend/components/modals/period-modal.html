@@ -16,7 +16,7 @@
                 <div class="flex items-center justify-between">
                     <h2
                         class="text-ink-main dark:text-off-white text-2xl font-bold tracking-tight font-sans uppercase drop-shadow-md">
-                        Novo Período</h2>
+                        New Period</h2>
                     <div
                         class="w-10 h-10 rounded-full bg-stone-200 dark:bg-stone-900 shadow-inner flex items-center justify-center border border-white/50 dark:border-stone-700/50">
                         <span
@@ -24,14 +24,15 @@
                     </div>
                 </div>
                 <div class="h-0.5 w-12 bg-amber-700 mt-4 mb-2 shadow-[0_0_5px_rgba(180,83,9,0.5)]"></div>
-                <p class="text-ink-muted dark:text-gold-soft/50 text-xs font-mono uppercase tracking-widest">Configuração do sistema
-                    </p>
+                <p class="text-ink-muted dark:text-gold-soft/50 text-xs font-mono uppercase tracking-widest">System
+                    Configuration</p>
             </div>
 
             <form class="space-y-8" id="period-form" data-form-type="period">
                 <div class="group">
                     <label for="period-descricao"
-                        class="block text-[10px] font-bold text-ink-muted dark:text-gold-soft/70 uppercase tracking-widest mb-2 pl-1">Nome do Período *</label>
+                        class="block text-[10px] font-bold text-ink-muted dark:text-gold-soft/70 uppercase tracking-widest mb-2 pl-1">Period
+                        Name *</label>
                     <input id="period-descricao" name="descricao"
                         class="w-full bg-transparent border-b-2 border-border-light dark:border-border-dark py-2 px-1 text-xl font-display text-ink-main dark:text-off-white placeholder-ink-muted/40 dark:placeholder-off-white/30 focus:outline-none focus:border-primary transition-colors"
                         placeholder="e.g. Romantic Era" type="text" required>
@@ -40,7 +41,8 @@
                 <div class="grid grid-cols-2 gap-8">
                     <div class="flex flex-col">
                         <label for="period-ano-inicio"
-                            class="block text-[10px] font-bold text-ink-muted dark:text-gold-soft/70 uppercase tracking-widest mb-2 pl-1">Ano de Início *</label>
+                            class="block text-[10px] font-bold text-ink-muted dark:text-gold-soft/70 uppercase tracking-widest mb-2 pl-1">Start
+                            Year *</label>
                         <div
                             class="relative bg-stone-200 dark:bg-stone-900 p-1.5 rounded-sm shadow-inner border-b border-white dark:border-stone-700/50">
                             <input id="period-ano-inicio" name="ano_inicio"
@@ -50,7 +52,8 @@
                     </div>
                     <div class="flex flex-col">
                         <label for="period-ano-fim"
-                            class="block text-[10px] font-bold text-ink-muted dark:text-gold-soft/70 uppercase tracking-widest mb-2 pl-1">Ano de Término *</label>
+                            class="block text-[10px] font-bold text-ink-muted dark:text-gold-soft/70 uppercase tracking-widest mb-2 pl-1">End
+                            Year *</label>
                         <div
                             class="relative bg-stone-200 dark:bg-stone-900 p-1.5 rounded-sm shadow-inner border-b border-white dark:border-stone-700/50">
                             <input id="period-ano-fim" name="ano_fim"
@@ -64,7 +67,7 @@
             <div class="mt-auto pt-10 flex items-center justify-between">
                 <button onclick="closeModal()"
                     class="text-ink-muted dark:text-off-white/50 hover:text-ink-main dark:hover:text-off-white text-xs font-bold uppercase tracking-widest transition-colors duration-300">
-                    Sair
+                    Dismiss
                 </button>
                 <button type="submit" form="period-form"
                     class="btn-gold-tactile group relative px-8 py-3 rounded-md flex items-center gap-3 overflow-hidden">
@@ -72,7 +75,7 @@
                         class="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform translate-x-[-100%] group-hover:translate-x-[100%]">
                     </div>
                     <span class="material-symbols-outlined text-[20px] drop-shadow-sm text-[#2a0a00]">toggle_on</span>
-                    <span class="text-xs font-bold uppercase tracking-widest text-[#2a0a00]">Registrar Período</span>
+                    <span class="text-xs font-bold uppercase tracking-widest text-[#2a0a00]">Register Period</span>
                 </button>
             </div>
         </div>

@@ -31,25 +31,25 @@ Se ao digitar `pip` no terminal aparecer um erro, adicione o Python às variáve
 O banco de dados é o coração do SpotPer. Siga estes passos com atenção:
 
 ### 1.1 Preparar o Script SQL
-- Abra o arquivo [`tudo_banco.sql`](file:///g:/Spotper/banco.sql).
+- Abra o arquivo [`banco.sql`](file:///g:/Spotper/banco.sql).
 - **Atenção aos caminhos dos arquivos**: O script está configurado para salvar os arquivos do banco em `C:\\SQLData` e `C:\\SQLLogs`.
   - **Opção A (Recomendada)**: Crie manualmente as pastas `C:\\SQLData` e `C:\\SQLLogs`.
   - **Opção B**: Edite o script e altere todas as linhas `FILENAME = '...'` para caminhos que existam no seu PC.
 
 ### 1.2 Criar o Banco
 1. Abra o **SQL Server Management Studio (SSMS)** ou use a extensão do VS Code.
-2. Execute todo o conteúdo do arquivo SQL.
+2. Execute todo o conteúdo do arquivo `banco.sql`.
    - Isso criará o banco `BDSpotPer`, tabelas, views, triggers e procedimentos armazenados.
 
 ---
 
 ## 2. Configuração do Backend
 
-O backend é desenvolvido em **Python** usando **Flask** e está configurado para rodar na porta **5001**.
+O backend é desenvolvido em **Python** usando **Flask**.
 
 1. **Instalar dependências**
    ```powershell
-   cd C:\Spotper\backend
+   cd backend
    pip install -r requirements.txt
    ```
 2. **Configurar a conexão**
@@ -60,7 +60,7 @@ O backend é desenvolvido em **Python** usando **Flask** e está configurado par
    ```powershell
    python app.py
    ```
-   - A API ficará disponível em `http://127.0.0.1:5001`.
+   - A API ficará disponível em `http://127.0.0.1:5000`.
 
 ---
 
@@ -71,14 +71,14 @@ O frontend consiste em arquivos estáticos HTML/CSS/JS. Não requer compilação
 ### Opção A – Live Server (VS Code) – *Fácil*
 1. Abra a pasta `frontend` no VS Code.
 2. Clique com o botão direito em `index.html` → **Open with Live Server**.
-3. O navegador abrirá em `http://127.0.0.1:5500` (geralmente).
+3. O navegador abrirá em `http://127.0.0.1:5500` (ou porta similar como 5501).
 
 ### Opção B – Servidor Python
 ```powershell
 cd frontend
-python -m http.server 5001
+python -m http.server 8000
 ```
-Acesse `http://localhost:5001`.
+Acesse `http://localhost:8000`.
 
 ---
 
