@@ -2,13 +2,12 @@
     <div class="relative w-full silver-frame dark:charcoal-frame rounded-xl p-[2px]">
         <div
             class="bg-parchment dark:bg-[#1c1a17] w-full h-full rounded-[10px] oak-trim dark:walnut-trim shadow-inner flex flex-col relative overflow-hidden">
-            <!-- Close -->
+
             <button onclick="closeModal()"
                 class="absolute top-4 right-4 text-[#8a8060] hover:text-[#181611] dark:hover:text-[#d4af37] transition-colors z-10">
                 <span class="material-symbols-outlined">close</span>
             </button>
 
-            <!-- Header -->
             <div class="px-8 pt-8 pb-4 text-center">
                 <div
                     class="w-14 h-14 bg-primary/20 dark:bg-primary/30 rounded-full flex items-center justify-center mx-auto mb-4 border border-primary/40">
@@ -21,10 +20,9 @@
                 </p>
             </div>
 
-            <!-- Content -->
             <div class="px-8 py-6">
                 <form id="composition-type-form" data-form-type="composition-type" class="flex flex-col gap-5">
-                    <!-- Descrição -->
+
                     <div class="space-y-1">
                         <label
                             class="block text-[#5c5542] dark:text-[#d4af37] text-sm font-semibold tracking-wide uppercase mb-2">
@@ -35,7 +33,6 @@
                             placeholder="Ex: Sinfonia, Ópera, Concerto..." type="text" required maxlength="50" />
                     </div>
 
-                    <!-- Exemplos -->
                     <div
                         class="bg-[#f5f3f0] dark:bg-[#1a1814] rounded-lg p-4 border border-[#e6e3db]/50 dark:border-[#333]">
                         <p class="text-[#5c5542] dark:text-[#9ca3af] text-xs font-medium uppercase tracking-wide mb-2">
@@ -76,7 +73,6 @@
                 </form>
             </div>
 
-            <!-- Footer -->
             <div
                 class="px-8 py-5 border-t border-[#e6e3db]/60 dark:border-[#333] flex items-center justify-end gap-4 bg-[#fdfbf7] dark:bg-[#151310]">
                 <button onclick="closeModal()"

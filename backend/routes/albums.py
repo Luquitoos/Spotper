@@ -1,14 +1,10 @@
-# backend/routes/albums.py
-# Rotas para Álbuns
-
 from flask import request, jsonify
 from routes import albums_bp
 from config.database import get_conexao
 
-
 @albums_bp.route('', methods=['GET'])
 def listar_albuns():
-    """Lista todos os álbuns."""
+    # Req (i): Lista álbuns com código, descrição, gravadora, preço, datas, tipo_midia, qtd_unidades
     conexao = get_conexao()
     cursor = conexao.cursor()
     cursor.execute("""
@@ -20,11 +16,11 @@ def listar_albuns():
         JOIN GRAVADORA g ON a.cod_gravadora = g.cod_gravadora
         ORDER BY a.nome
     """)
-    
+    rows = cursor.fetchall()
+    cursor.close()
     albuns = []
-    row = cursor.fetchone()
-    while row:
-        albuns.append({
+    for row in rows:
+        album = {
             'cod_album': row[0],
             'nome': row[1],
             'descricao': row[2],
@@ -36,18 +32,40 @@ def listar_albuns():
             'data_gravacao': str(row[8]) if row[8] else None,
             'tipo_compra': row[9],
             'qtd_unidades': row[10],
-            'qtd_faixas': row[11]
-        })
-        row = cursor.fetchone()
-    
-    cursor.close()
+            'qtd_faixas': row[11],
+            'compositor_period_ids': [],
+            'compositor_ids': [],
+            'interprete_ids': []
+        }
+        cursor2 = conexao.cursor()
+        cursor2.execute("""
+            SELECT DISTINCT c.cod_periodo, c.cod_compositor
+            FROM FAIXA_COMPOSITOR fc
+            JOIN COMPOSITOR c ON fc.cod_compositor = c.cod_compositor
+            WHERE fc.cod_album = ?
+        """, (row[0],))
+        for comp_row in cursor2.fetchall():
+            if comp_row[0] not in album['compositor_period_ids']:
+                album['compositor_period_ids'].append(comp_row[0])
+            if comp_row[1] not in album['compositor_ids']:
+                album['compositor_ids'].append(comp_row[1])
+        cursor2.close()
+        cursor3 = conexao.cursor()
+        cursor3.execute("""
+            SELECT DISTINCT fi.cod_interprete
+            FROM FAIXA_INTERPRETE fi
+            WHERE fi.cod_album = ?
+        """, (row[0],))
+        for interp_row in cursor3.fetchall():
+            album['interprete_ids'].append(interp_row[0])
+        cursor3.close()
+        albuns.append(album)
     conexao.close()
     return jsonify(albuns)
 
-
 @albums_bp.route('/<int:cod_album>', methods=['GET'])
 def obter_album(cod_album):
-    """Obtém um álbum específico."""
+    # Obtém um álbum específico
     conexao = get_conexao()
     cursor = conexao.cursor()
     cursor.execute("""
@@ -59,13 +77,11 @@ def obter_album(cod_album):
         JOIN GRAVADORA g ON a.cod_gravadora = g.cod_gravadora
         WHERE a.cod_album = ?
     """, (cod_album,))
-    
     row = cursor.fetchone()
     if not row:
         cursor.close()
         conexao.close()
         return jsonify({'error': True, 'message': 'Álbum não encontrado'}), 404
-    
     album = {
         'cod_album': row[0],
         'nome': row[1],
@@ -80,20 +96,16 @@ def obter_album(cod_album):
         'qtd_unidades': row[10],
         'qtd_faixas': row[11]
     }
-    
     cursor.close()
     conexao.close()
     return jsonify(album)
 
-
 @albums_bp.route('', methods=['POST'])
 def criar_album():
-    """Cria um novo álbum."""
+    # Req (i): Cria álbum com código, descrição, gravadora, preço, datas, tipo_midia, qtd_unidades
     dados = request.get_json()
-    
     conexao = get_conexao()
     cursor = conexao.cursor()
-    
     try:
         cursor.execute("""
             INSERT INTO ALBUM (nome, descricao, cod_gravadora, preco_compra, data_compra,
@@ -110,30 +122,112 @@ def criar_album():
             dados['tipo_midia'],
             dados.get('qtd_unidades', 1)
         ))
-        
-        cursor.execute("SELECT SCOPE_IDENTITY()")
-        cod_album = cursor.fetchone()[0]
-        
+        cursor.execute("SELECT @@IDENTITY")
+        row = cursor.fetchone()
+        cod_album = int(row[0]) if row and row[0] else None
+        if cod_album is None:
+            conexao.rollback()
+            cursor.close()
+            conexao.close()
+            return jsonify({'error': True, 'message': 'Falha ao obter ID do álbum criado'}), 500
+        faixas = dados.get('faixas', [])
+        tipo_midia = dados['tipo_midia']
+        for faixa in faixas:
+            cod_tipo_composicao = faixa.get('cod_tipo_composicao')
+            tipo_composicao_texto = faixa.get('tipo_composicao_texto')
+            if not cod_tipo_composicao and tipo_composicao_texto:
+                cursor.execute("""
+                    SELECT cod_tipo_composicao FROM TIPO_COMPOSICAO WHERE descricao = ?
+                """, (tipo_composicao_texto,))
+                existing = cursor.fetchone()
+                if existing:
+                    cod_tipo_composicao = existing[0]
+                else:
+                    cursor.execute("""
+                        INSERT INTO TIPO_COMPOSICAO (descricao) VALUES (?)
+                    """, (tipo_composicao_texto,))
+                    cursor.execute("SELECT @@IDENTITY")
+                    tipo_row = cursor.fetchone()
+                    cod_tipo_composicao = int(tipo_row[0]) if tipo_row and tipo_row[0] else None
+            if not cod_tipo_composicao:
+                conexao.rollback()
+                cursor.close()
+                conexao.close()
+                return jsonify({'error': True, 'message': 'Tipo de composição é obrigatório para cada faixa'}), 400
+            tipo_gravacao = faixa.get('tipo_gravacao')
+            tipo_midia_check = tipo_midia.upper() if tipo_midia else ''
+            if tipo_midia_check in ('VINIL', 'DOWNLOAD'):
+                # Req (iii.b): VINIL/DOWNLOAD não podem ter tipo_gravacao
+                tipo_gravacao = None  
+            elif tipo_midia_check == 'CD' and not tipo_gravacao:
+                # Req (iii.b): CD exige tipo_gravacao ADD ou DDD
+                conexao.rollback()
+                cursor.close()
+                conexao.close()
+                return jsonify({'error': True, 'message': 'Faixas de CD devem ter tipo de gravação (ADD ou DDD)'}), 400
+            cursor.execute("""
+                INSERT INTO FAIXA (cod_album, numero_unidade, numero_faixa, descricao, 
+                                   cod_tipo_composicao, tempo_execucao, tipo_gravacao)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (
+                cod_album,
+                faixa.get('numero_unidade', 1),
+                faixa.get('numero_faixa', 1),
+                faixa['descricao'],
+                cod_tipo_composicao,
+                faixa['tempo_execucao'],
+                tipo_gravacao
+            ))
+            for cod_compositor in faixa.get('compositores', []):
+                tipo_midia_upper = tipo_midia.upper() if tipo_midia else ''
+                if tipo_midia_upper in ('VINIL', 'DOWNLOAD'):
+                    cursor.execute("""
+                        SELECT p.descricao 
+                        FROM COMPOSITOR c 
+                        JOIN PERIODO_MUSICAL p ON c.cod_periodo = p.cod_periodo 
+                        WHERE c.cod_compositor = ? AND UPPER(p.descricao) LIKE '%BARROCO%'
+                    """, (cod_compositor,))
+                    barroco_check = cursor.fetchone()
+                    if barroco_check:
+                        # Restrição (a): Barroco exige DDD - VINIL/DOWNLOAD não suportam
+                        conexao.rollback()
+                        cursor.close()
+                        conexao.close()
+                        return jsonify({
+                            'error': True, 
+                            'message': f'Compositores do período Barroco não podem estar em álbuns VINIL/DOWNLOAD. Barroco exige gravação DDD, que não é suportada por {tipo_midia}.'
+                        }), 400
+                cursor.execute("""
+                    INSERT INTO FAIXA_COMPOSITOR (cod_album, numero_unidade, numero_faixa, cod_compositor)
+                    VALUES (?, ?, ?, ?)
+                """, (cod_album, faixa.get('numero_unidade', 1), faixa.get('numero_faixa', 1), cod_compositor))
+            for cod_interprete in faixa.get('interpretes', []):
+                cursor.execute("""
+                    INSERT INTO FAIXA_INTERPRETE (cod_album, numero_unidade, numero_faixa, cod_interprete)
+                    VALUES (?, ?, ?, ?)
+                """, (cod_album, faixa.get('numero_unidade', 1), faixa.get('numero_faixa', 1), cod_interprete))
         conexao.commit()
         cursor.close()
         conexao.close()
-        
-        return jsonify({'success': True, 'cod_album': int(cod_album)}), 201
+        return jsonify({'success': True, 'cod_album': cod_album, 'faixas_inseridas': len(faixas)}), 201
     except Exception as e:
-        conexao.rollback()
-        cursor.close()
-        conexao.close()
+        try:
+            conexao.rollback()
+        except:
+            pass
+        try:
+            cursor.close()
+            conexao.close()
+        except:
+            pass
         return jsonify({'error': True, 'message': str(e)}), 400
-
 
 @albums_bp.route('/<int:cod_album>', methods=['PUT'])
 def atualizar_album(cod_album):
-    """Atualiza um álbum."""
+    # Atualiza um álbum
     dados = request.get_json()
-    
     conexao = get_conexao()
     cursor = conexao.cursor()
-    
     try:
         cursor.execute("""
             UPDATE ALBUM 
@@ -151,12 +245,10 @@ def atualizar_album(cod_album):
             dados.get('qtd_unidades', 1),
             cod_album
         ))
-        
         if cursor.rowcount == 0:
             cursor.close()
             conexao.close()
             return jsonify({'error': True, 'message': 'Álbum não encontrado'}), 404
-        
         conexao.commit()
         cursor.close()
         conexao.close()
@@ -167,20 +259,17 @@ def atualizar_album(cod_album):
         conexao.close()
         return jsonify({'error': True, 'message': str(e)}), 400
 
-
 @albums_bp.route('/<int:cod_album>', methods=['DELETE'])
 def deletar_album(cod_album):
-    """Deleta um álbum."""
+    # Restrição (c): Ao remover álbum, faixas são removidas via CASCADE no banco
     conexao = get_conexao()
     cursor = conexao.cursor()
-    
     try:
         cursor.execute("DELETE FROM ALBUM WHERE cod_album = ?", (cod_album,))
         if cursor.rowcount == 0:
             cursor.close()
             conexao.close()
             return jsonify({'error': True, 'message': 'Álbum não encontrado'}), 404
-        
         conexao.commit()
         cursor.close()
         conexao.close()
@@ -191,10 +280,9 @@ def deletar_album(cod_album):
         conexao.close()
         return jsonify({'error': True, 'message': str(e)}), 400
 
-
 @albums_bp.route('/<int:cod_album>/tracks', methods=['GET'])
 def listar_faixas_album(cod_album):
-    """Lista todas as faixas de um álbum."""
+    # Req (ii): Lista faixas do álbum com compositores e intérpretes
     conexao = get_conexao()
     cursor = conexao.cursor()
     cursor.execute("""
@@ -206,10 +294,10 @@ def listar_faixas_album(cod_album):
         WHERE f.cod_album = ?
         ORDER BY f.numero_unidade, f.numero_faixa
     """, (cod_album,))
-    
+    rows = cursor.fetchall()
+    cursor.close()
     faixas = []
-    row = cursor.fetchone()
-    while row:
+    for row in rows:
         faixa = {
             'cod_album': row[0],
             'numero_unidade': row[1],
@@ -222,8 +310,6 @@ def listar_faixas_album(cod_album):
             'compositores': [],
             'interpretes': []
         }
-        
-        # Buscar compositores
         cursor2 = conexao.cursor()
         cursor2.execute("""
             SELECT c.cod_compositor, c.nome 
@@ -231,13 +317,8 @@ def listar_faixas_album(cod_album):
             JOIN COMPOSITOR c ON fc.cod_compositor = c.cod_compositor
             WHERE fc.cod_album = ? AND fc.numero_unidade = ? AND fc.numero_faixa = ?
         """, (row[0], row[1], row[2]))
-        comp = cursor2.fetchone()
-        while comp:
-            faixa['compositores'].append({'cod_compositor': comp[0], 'nome': comp[1]})
-            comp = cursor2.fetchone()
+        faixa['compositores'] = [{'cod_compositor': c[0], 'nome': c[1]} for c in cursor2.fetchall()]
         cursor2.close()
-        
-        # Buscar intérpretes
         cursor3 = conexao.cursor()
         cursor3.execute("""
             SELECT i.cod_interprete, i.nome 
@@ -245,15 +326,8 @@ def listar_faixas_album(cod_album):
             JOIN INTERPRETE i ON fi.cod_interprete = i.cod_interprete
             WHERE fi.cod_album = ? AND fi.numero_unidade = ? AND fi.numero_faixa = ?
         """, (row[0], row[1], row[2]))
-        interp = cursor3.fetchone()
-        while interp:
-            faixa['interpretes'].append({'cod_interprete': interp[0], 'nome': interp[1]})
-            interp = cursor3.fetchone()
+        faixa['interpretes'] = [{'cod_interprete': i[0], 'nome': i[1]} for i in cursor3.fetchall()]
         cursor3.close()
-        
         faixas.append(faixa)
-        row = cursor.fetchone()
-    
-    cursor.close()
     conexao.close()
     return jsonify(faixas)

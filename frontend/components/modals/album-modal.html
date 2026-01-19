@@ -148,11 +148,11 @@
             </div>
 
             <div id="tracks-container" class="flex-1 overflow-y-auto p-6 relative z-10 flex flex-col gap-3">
-                <!-- Faixas serão adicionadas dinamicamente -->
+
             </div>
 
             <div class="relative z-10 px-6 pb-4">
-                <button type="button" onclick="openModal('track')"
+                <button type="button" onclick="openTrackModalFromAlbum()"
                     class="w-full flex items-center justify-center gap-2 py-3 border border-dashed border-ink-muted/50 rounded text-ink-muted dark:text-[#8e8672] hover:text-primary hover:border-primary/50 hover:bg-primary/5 transition-all group shadow-sm bg-white/20 dark:bg-black/20">
                     <span class="material-symbols-outlined group-hover:scale-110 transition-transform">add_circle</span>
                     <span class="font-mono text-xs uppercase tracking-widest font-bold">Add Track</span>
@@ -175,7 +175,6 @@
 </div>
 
 <script>
-    // Script inline para gerenciar faixas do álbum
     let trackCounter = 0;
 
     function addTrack() {
@@ -214,7 +213,6 @@
         container.appendChild(trackDiv);
         updateTrackCount();
 
-        // Carrega tipos de composição no select
         loadCompositionTypesForTrack(trackDiv.querySelector('select'));
     }
 
@@ -247,7 +245,6 @@
         });
     }
 
-    // Inicializa seletor de tipo de mídia
     document.addEventListener('DOMContentLoaded', function () {
         const mediaButtons = document.querySelectorAll('.media-type-btn');
         const tipoMidiaInput = document.getElementById('album-tipo-midia');
@@ -257,7 +254,6 @@
             btn.addEventListener('click', function () {
                 const tipo = this.getAttribute('data-media-type');
 
-                // Atualiza botões
                 mediaButtons.forEach(b => {
                     b.classList.remove('bg-primary', 'text-white');
                     b.classList.add('text-text-muted');
@@ -265,12 +261,10 @@
                 this.classList.add('bg-primary', 'text-white');
                 this.classList.remove('text-text-muted');
 
-                // Atualiza input hidden
                 if (tipoMidiaInput) {
                     tipoMidiaInput.value = tipo;
                 }
 
-                // Esconde quantidade de unidades para DOWNLOAD
                 if (qtdUnidadesContainer) {
                     if (tipo === 'DOWNLOAD') {
                         qtdUnidadesContainer.style.display = 'none';
@@ -287,9 +281,8 @@
         if (!selectElement) return;
 
         try {
-            // Usar cache que foi populado da API na inicialização
-            const types = (typeof SpotPerState !== 'undefined' && SpotPerState.cache?.compositionTypes) 
-                ? SpotPerState.cache.compositionTypes 
+            const types = (typeof SpotPerState !== 'undefined' && SpotPerState.cache?.compositionTypes)
+                ? SpotPerState.cache.compositionTypes
                 : await api.listCompositionTypes();
 
             selectElement.innerHTML = '<option value="">Tipo composição</option>' +

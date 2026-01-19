@@ -6,7 +6,7 @@ A aplicação fornece uma interface moderna para gerenciar playlists, consultar 
 
 ---
 
-## 📋 Requisitos do Sistema
+## Requisitos do Sistema
 
 Antes de iniciar, certifique-se de ter os seguintes softwares instalados:
 
@@ -16,7 +16,7 @@ Antes de iniciar, certifique-se de ter os seguintes softwares instalados:
 3. **ODBC Driver 18 for SQL Server**: Necessário para o Python conectar ao banco. [Download](https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server)
 4. **VS Code** (Recomendado) com a extensão **Live Server**.
 
-### 🔧 Solução de Problemas: `pip` não reconhecido
+### Solução de Problemas: `pip` não reconhecido
 Se ao digitar `pip` no terminal aparecer um erro, adicione o Python às variáveis de ambiente:
 1. Abra o menu Iniciar e procure por "Variáveis de Ambiente" → "Editar as variáveis de ambiente do sistema".
 2. Clique em **Variáveis de Ambiente**.
@@ -26,7 +26,7 @@ Se ao digitar `pip` no terminal aparecer um erro, adicione o Python às variáve
 
 ---
 
-## 🗄️ 1. Configuração do Banco de Dados
+##  1. Configuração do Banco de Dados
 
 O banco de dados é o coração do SpotPer. Siga estes passos com atenção:
 
@@ -43,7 +43,7 @@ O banco de dados é o coração do SpotPer. Siga estes passos com atenção:
 
 ---
 
-## 🐍 2. Configuração do Backend
+## 2. Configuração do Backend
 
 O backend é desenvolvido em **Python** usando **Flask**.
 
@@ -64,14 +64,14 @@ O backend é desenvolvido em **Python** usando **Flask**.
 
 ---
 
-## 🖥️ 3. Configuração do Frontend
+## 3. Configuração do Frontend
 
 O frontend consiste em arquivos estáticos HTML/CSS/JS. Não requer compilação, apenas um servidor HTTP simples para evitar restrições de CORS.
 
 ### Opção A – Live Server (VS Code) – *Fácil*
 1. Abra a pasta `frontend` no VS Code.
 2. Clique com o botão direito em `index.html` → **Open with Live Server**.
-3. O navegador abrirá em `http://127.0.0.1:5500` (ou porta similar).
+3. O navegador abrirá em `http://127.0.0.1:5500` (ou porta similar como 5501).
 
 ### Opção B – Servidor Python
 ```powershell
@@ -82,7 +82,7 @@ Acesse `http://localhost:8000`.
 
 ---
 
-## 🚀 Como Utilizar o SpotPer
+## Como Utilizar o SpotPer
 
 ### Fluxo Esperado
 1. **Home** – Visão geral com acesso rápido às funcionalidades.
@@ -104,7 +104,7 @@ Acesse `http://localhost:8000`.
 
 ---
 
-## 📂 Estrutura de Arquivos
+## Estrutura de Arquivos
 
 ```
 SpotPer/
@@ -127,7 +127,7 @@ SpotPer/
 
 ---
 
-## 🗃️ Detalhes do Banco de Dados
+## Detalhes do Banco de Dados
 
 ### Principais Tabelas
 | Tabela | Descrição |

@@ -35,19 +35,14 @@ const SpotPerState = {
   }
 };
 
-// Alias for easier access from modals.js
 SpotPerState.data = SpotPerState.cache;
 
-// ----------------------------
-// Bootstrap
-// ----------------------------
 
 document.addEventListener('DOMContentLoaded', () => {
   initApp().catch(console.error);
 });
 
 async function initApp() {
-  // Load initial data from backend API
   await loadInitialData();
 
   await Promise.all([
@@ -59,11 +54,12 @@ async function initApp() {
 
   bindGlobalActions();
   renderAll();
+
+  // Enable drag-to-scroll on carousels
+  initCarouselDragScroll();
 }
 
-/**
- * Carrega dados iniciais do backend para o cache
- */
+
 async function loadInitialData() {
   try {
     console.log('%c[SpotPer] Carregando dados do backend...', 'color: #f4c025; font-weight: bold;');
@@ -144,6 +140,30 @@ function bindGlobalActions() {
       return;
     }
 
+    // Edit playlist
+    const editPlaylistBtn = e.target.closest('[data-action="edit-playlist"]');
+    if (editPlaylistBtn) {
+      e.stopPropagation();
+      const id = parseInt(editPlaylistBtn.getAttribute('data-playlist-id'), 10);
+      if (id) openPlaylistEdit(id);
+      return;
+    }
+
+    const deletePlaylistBtn = e.target.closest('[data-action="delete-playlist"]');
+    if (deletePlaylistBtn) {
+      e.stopPropagation();
+      const id = deletePlaylistBtn.getAttribute('data-playlist-id');
+      if (id && confirm('Tem certeza que deseja excluir esta playlist?')) {
+        api.deletePlaylist(id)
+          .then(() => {
+            SpotPerState.cache.playlists = SpotPerState.cache.playlists.filter(p => p.cod_playlist != id);
+            renderMain();
+          })
+          .catch(err => alert('Erro ao excluir playlist: ' + err.message));
+      }
+      return;
+    }
+
     const playlistCard = e.target.closest('[data-action="open-playlist"]');
     if (playlistCard) {
       openPlaylistDetails(parseInt(playlistCard.getAttribute('data-playlist-id'), 10));
@@ -161,8 +181,6 @@ function bindGlobalActions() {
       renderMain();
     }
   });
-
-  // sidebar select period (will only work when periods exist via backend)
   document.addEventListener('click', (e) => {
     const periodItem = e.target.closest('[data-action="select-period"]');
     if (!periodItem) return;
@@ -172,7 +190,6 @@ function bindGlobalActions() {
     setPeriodFilter(codPeriodo, periodName);
   });
 
-  // composer/interpreter filters (only relevant once data exists)
   document.addEventListener('click', (e) => {
     const composerBtn = e.target.closest('[data-action="select-composer"]');
     if (composerBtn) {
@@ -189,13 +206,11 @@ function bindGlobalActions() {
       SpotPerState.filters.interpreterId = raw ? parseInt(raw, 10) : null;
       syncInterpreterSelection();
       renderMain();
+      return;
     }
   });
 }
 
-// ----------------------------
-// Component loaders
-// ----------------------------
 
 async function fetchText(path) {
   const res = await fetch(path);
@@ -252,25 +267,39 @@ function renderAlbums() {
   const area = document.getElementById('content-area');
   if (!area) return;
 
-  area.innerHTML = `
-    <div class="flex items-center justify-between gap-4 mb-6">
-      <div class="flex flex-col">
-        <h2 class="text-ink-main dark:text-off-white text-xl font-display">Álbuns</h2>
-        <p class="text-ink-muted dark:text-[#8e8672] text-sm">Sem backend ainda: crie álbuns pela interface.</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <div class="relative">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted dark:text-[#8e8672] !text-[18px]">search</span>
-          <input data-action="search-catalog" class="pl-10 pr-4 py-2 rounded bg-panel-light dark:bg-panel-dark border border-border-light dark:border-border-dark text-sm w-[260px] focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="Buscar (quando houver dados)..." value="${escapeHtml(SpotPerState.filters.search)}" />
+  // Check if structure already exists
+  let grid = document.getElementById('album-grid');
+
+  if (!grid) {
+    area.innerHTML = `
+      <div class="flex items-center justify-between gap-4 mb-6">
+        <div class="flex flex-col">
+          <h2 class="text-ink-main dark:text-off-white text-xl font-display">Álbuns</h2>
+          <p class="text-ink-muted dark:text-[#8e8672] text-sm">Gerencie seu catálogo de álbuns.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted dark:text-[#8e8672] !text-[18px]">search</span>
+            <input data-action="search-catalog" id="album-catalog-search" class="pl-10 pr-4 py-2 rounded bg-panel-light dark:bg-panel-dark border border-border-light dark:border-border-dark text-sm w-[260px] focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="Buscar (quando houver dados)..." value="${escapeHtml(SpotPerState.filters.search || '')}" />
+          </div>
         </div>
       </div>
-    </div>
 
-    <div id="album-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 pb-32"></div>
-  `;
+      <div id="album-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 pb-32"></div>
+    `;
+    grid = document.getElementById('album-grid');
 
-  const grid = document.getElementById('album-grid');
+    // Ensure input value is in sync (in case state has value but HTML was just created)
+    const searchInput = document.getElementById('album-catalog-search');
+    if (searchInput && SpotPerState.filters.search) {
+      searchInput.value = SpotPerState.filters.search;
+      // Focus if we just created it and have value (implies re-render while searching)
+      searchInput.focus();
+    }
+  }
+
   if (!grid) return;
+  grid.innerHTML = '';
 
   // Card de adicionar SEMPRE primeiro
   grid.appendChild(createAddAlbumCard());
@@ -280,7 +309,7 @@ function renderAlbums() {
   if (!albums.length) {
     const empty = document.createElement('div');
     empty.className = 'col-span-full text-center text-ink-muted dark:text-[#8e8672] py-12';
-    empty.innerHTML = 'Nenhum álbum cadastrado. Use <span class="font-mono">Add Album</span> para começar.';
+    empty.innerHTML = 'Nenhum álbum encontrado. Use <span class="font-mono">Add Album</span> para começar.';
     grid.appendChild(empty);
     return;
   }
@@ -302,13 +331,37 @@ function createAddAlbumCard() {
 }
 
 function applyAlbumFilters(albums) {
-  const { mediaType, search } = SpotPerState.filters;
+  const { mediaType, search, periodId, composerId } = SpotPerState.filters;
   let result = albums.slice();
 
+  // Filter by media type
   if (mediaType && mediaType !== 'ALL') {
     result = result.filter((a) => a.tipo_midia === mediaType);
   }
 
+  // Filter by period (album must have at least one composer from selected period)
+  if (periodId) {
+    result = result.filter((a) =>
+      a.compositor_period_ids && a.compositor_period_ids.includes(periodId)
+    );
+  }
+
+  // Filter by composer (album must have this composer)
+  if (composerId) {
+    result = result.filter((a) =>
+      a.compositor_ids && a.compositor_ids.includes(composerId)
+    );
+  }
+
+  // Filter by interpreter (album must have this interpreter)
+  const { interpreterId } = SpotPerState.filters;
+  if (interpreterId) {
+    result = result.filter((a) =>
+      a.interprete_ids && a.interprete_ids.includes(interpreterId)
+    );
+  }
+
+  // Filter by search term
   if (search && search.trim()) {
     const t = search.trim().toLowerCase();
     result = result.filter((a) =>
@@ -335,11 +388,7 @@ function createAlbumCard(album) {
            style="background-image: url('${album.img || ''}'); background-size: cover; background-position: center;">
 
         <div class="absolute top-2 right-2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-          <button type="button" data-action="edit-album" data-album-id="${album.cod_album}"
-                  class="size-8 rounded bg-black/60 text-white/80 border border-white/10 hover:text-primary hover:border-primary/40 hover:bg-black/75 transition-colors flex items-center justify-center"
-                  title="Editar álbum">
-            <span class="material-symbols-outlined !text-[18px]">edit</span>
-          </button>
+          <!-- Edit button removed as per request -->
           <button type="button" data-action="delete-album" data-album-id="${album.cod_album}"
                   class="size-8 rounded bg-black/60 text-white/80 border border-white/10 hover:text-red-400 hover:border-red-400/40 hover:bg-black/75 transition-colors flex items-center justify-center"
                   title="Excluir álbum">
@@ -402,7 +451,10 @@ function createPlaylistCard(playlist) {
          data-action="open-playlist" data-playlist-id="${playlist.cod_playlist}">
       <span class="material-symbols-outlined text-primary !text-[48px]">queue_music</span>
       <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 flex gap-2">
-        <button data-action="delete-playlist" data-playlist-id="${playlist.cod_playlist}" class="size-8 rounded bg-black/60 text-white/80 border border-white/10 hover:text-red-400 hover:border-red-400/40 flex items-center justify-center">
+        <button data-action="edit-playlist" data-playlist-id="${playlist.cod_playlist}" class="size-8 rounded bg-black/60 text-white/80 border border-white/10 hover:text-primary hover:border-primary/40 flex items-center justify-center" title="Editar playlist">
+          <span class="material-symbols-outlined !text-[18px]">edit</span>
+        </button>
+        <button data-action="delete-playlist" data-playlist-id="${playlist.cod_playlist}" class="size-8 rounded bg-black/60 text-white/80 border border-white/10 hover:text-red-400 hover:border-red-400/40 flex items-center justify-center" title="Excluir playlist">
           <span class="material-symbols-outlined !text-[18px]">delete</span>
         </button>
       </div>
@@ -422,24 +474,108 @@ function formatDuration(seconds) {
   return `${mins}:${String(secs).padStart(2, '0')}`;
 }
 
-function renderTracksCatalog() {
+async function renderTracksCatalog() {
   const area = document.getElementById('content-area');
   if (!area) return;
 
+  // Show loading state
   area.innerHTML = `
     <div class="flex items-center justify-between mb-4">
       <div>
         <h2 class="text-ink-main dark:text-white font-display text-xl">Faixas</h2>
-        <p class="text-ink-muted dark:text-[#8e8672] text-sm">Sem backend ainda: use o modal para cadastrar (UI).</p>
+        <p class="text-ink-muted dark:text-[#8e8672] text-sm">Carregando...</p>
       </div>
-      <button onclick="openModal('track')" class="flex items-center gap-2 px-3 py-2 rounded bg-primary/10 border border-primary/30 text-primary text-xs font-mono font-bold hover:bg-primary/20 transition-colors shadow-amber-glow">
-        <span class="material-symbols-outlined !text-[16px]">music_note</span>
-        ADICIONAR FAIXA
-      </button>
     </div>
-
-    <div class="text-ink-muted dark:text-[#8e8672] text-sm">(Placeholder) A listagem de faixas virá do backend (FAIXA + relacionamentos).</div>
   `;
+
+  try {
+    // Fetch tracks with all current filters
+    const { mediaType, periodId, composerId, interpreterId } = SpotPerState.filters;
+    const tracks = await api.listTracks({
+      tipoMidia: mediaType,
+      periodId: periodId,
+      composerId: composerId,
+      interpreterId: interpreterId
+    });
+
+    // Cache tracks
+    SpotPerState.cache.tracks = tracks;
+
+    area.innerHTML = `
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-ink-main dark:text-white font-display text-xl">Faixas</h2>
+          <p class="text-ink-muted dark:text-[#8e8672] text-sm">${tracks.length} faixa(s) encontrada(s)</p>
+        </div>
+      </div>
+
+      <div id="tracks-grid" class="grid gap-2 pb-32"></div>
+    `;
+
+    const grid = document.getElementById('tracks-grid');
+    if (!grid) return;
+
+    if (tracks.length === 0) {
+      grid.innerHTML = '<div class="col-span-full text-center text-ink-muted py-12">Nenhuma faixa encontrada para o filtro selecionado.</div>';
+      return;
+    }
+
+    grid.innerHTML = tracks.map(track => {
+      const tempoMin = Math.floor((track.tempo_execucao || 0) / 60);
+      const tempoSec = (track.tempo_execucao || 0) % 60;
+      const tempoStr = `${tempoMin}:${String(tempoSec).padStart(2, '0')}`;
+      const composerNames = (track.compositores || []).map(c => c.nome).join(', ') || '-';
+      const interpreterNames = (track.interpretes || []).map(i => i.nome).join(', ') || '-';
+
+      const mediaTag = track.tipo_midia === 'CD' ? 'CD' : (track.tipo_midia === 'VINIL' ? 'Vinil' : 'Download');
+      const recordingBadge = track.tipo_gravacao
+        ? `<span class="px-1.5 py-0.5 text-[10px] font-mono rounded ${track.tipo_gravacao === 'DDD' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'}">${track.tipo_gravacao}</span>`
+        : '';
+
+      return `
+        <div class="group flex items-center gap-4 p-4 rounded-lg border border-border-light dark:border-border-dark bg-panel-light dark:bg-panel-dark hover:border-primary/30 transition-colors">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-ink-main dark:text-white font-medium truncate">${escapeHtml(track.descricao)}</span>
+              ${recordingBadge}
+              <span class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-primary/10 text-primary">${escapeHtml(track.tipo_composicao || '-')}</span>
+            </div>
+            <div class="flex items-center gap-3 text-xs text-ink-muted dark:text-[#8e8672] mb-1">
+              <span class="flex items-center gap-1">
+                <span class="material-symbols-outlined !text-[14px]">album</span>
+                ${escapeHtml(track.nome_album)}
+              </span>
+              <span class="px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/5 font-mono text-[10px]">${mediaTag}</span>
+            </div>
+            <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-muted dark:text-[#8e8672]">
+              <span class="flex items-center gap-1" title="Compositor(es)">
+                <span class="material-symbols-outlined !text-[14px]">edit</span>
+                ${escapeHtml(composerNames)}
+              </span>
+              <span class="flex items-center gap-1" title="Intérprete(s)">
+                <span class="material-symbols-outlined !text-[14px]">mic</span>
+                ${escapeHtml(interpreterNames)}
+              </span>
+            </div>
+          </div>
+          <div class="text-right shrink-0">
+            <div class="text-sm text-ink-main dark:text-white font-mono">${tempoStr}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  } catch (error) {
+    console.error('Erro ao carregar faixas:', error);
+    area.innerHTML = `
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-ink-main dark:text-white font-display text-xl">Faixas</h2>
+          <p class="text-red-500 text-sm">Erro ao carregar faixas: ${error.message}</p>
+        </div>
+      </div>
+    `;
+  }
 }
 
 function renderQueries() {
@@ -569,57 +705,64 @@ function renderQueryResults(viewName, results) {
 // Details + Edit/Delete (UI only)
 // ----------------------------
 
-function openAlbumDetails(codAlbum) {
+async function openAlbumDetails(codAlbum) {
   const album = SpotPerState.cache.albums.find((a) => a.cod_album === codAlbum);
 
   // Store album ID for reference
   SpotPerState.selection.albumId = codAlbum;
 
   // Open the dedicated album-details modal
-  openModal('album-details');
+  await openModal('album-details');
 
   // Populate modal with album data after it loads
-  queueMicrotask(async () => {
-    const titleEl = document.getElementById('album-details-title');
-    const descEl = document.getElementById('album-details-description');
-    const recordedEl = document.getElementById('album-details-recorded');
-    const durationEl = document.getElementById('album-details-duration');
-    const trackCountEl = document.getElementById('album-details-track-count');
-    const coverEl = document.getElementById('album-details-cover');
-    const editBtn = document.getElementById('album-details-edit');
+  const titleEl = document.getElementById('album-details-title');
+  const descEl = document.getElementById('album-details-description');
+  const recordedEl = document.getElementById('album-details-recorded');
+  const durationEl = document.getElementById('album-details-duration');
+  const trackCountEl = document.getElementById('album-details-track-count');
+  const coverEl = document.getElementById('album-details-cover');
+  const editBtn = document.getElementById('album-details-edit');
 
-    if (album) {
-      if (titleEl) titleEl.textContent = album.nome || 'Sem título';
-      if (descEl) descEl.textContent = album.descricao || 'Sem descrição disponível';
-      if (recordedEl) recordedEl.textContent = album.data_gravacao || '—';
-      if (durationEl) durationEl.textContent = album.tempo_total || '—';
-      if (trackCountEl) trackCountEl.textContent = album.qtd_faixas || '0';
-      if (coverEl && album.img) {
-        coverEl.style.backgroundImage = `url('${album.img}')`;
-        coverEl.innerHTML = ''; // Remove placeholder icon
-      }
-      if (editBtn) {
-        editBtn.onclick = () => openAlbumEdit(codAlbum);
-      }
+  if (album) {
+    if (titleEl) titleEl.textContent = album.nome || 'Sem título';
+    if (descEl) descEl.textContent = album.descricao || 'Sem descrição disponível';
+    if (recordedEl) {
+      // Format date if needed, or show raw
+      recordedEl.textContent = album.data_gravacao || '—';
+    }
+    // Duration will be calculated from tracks, set placeholder
+    if (durationEl) durationEl.textContent = 'Calculando...';
 
-      // New fields: media type, purchase date, price
-      const mediaTypeEl = document.getElementById('album-details-media-type');
-      const purchaseDateEl = document.getElementById('album-details-purchase-date');
-      const priceEl = document.getElementById('album-details-price');
-
-      if (mediaTypeEl) mediaTypeEl.textContent = album.tipo_midia || 'CD';
-      if (purchaseDateEl) purchaseDateEl.textContent = album.data_compra || '—';
-      if (priceEl) priceEl.textContent = album.preco_compra ? Number(album.preco_compra).toFixed(2).replace('.', ',') : '—';
+    if (trackCountEl) trackCountEl.textContent = album.qtd_faixas || '0';
+    if (coverEl && album.img) {
+      coverEl.style.backgroundImage = `url('${album.img}')`;
+      coverEl.innerHTML = ''; // Remove placeholder icon
+    }
+    if (editBtn) {
+      // Hiding edit button as per request to remove album editing
+      editBtn.style.display = 'none';
     }
 
-    // Load tracks from backend API
-    try {
-      const tracks = await api.getAlbumTracks(codAlbum);
-      renderAlbumDetailTracks(tracks, codAlbum);
-    } catch (error) {
-      console.error('Erro ao carregar faixas do álbum:', error);
+    // New fields: media type, purchase date, price
+    const mediaTypeEl = document.getElementById('album-details-media-type');
+    const purchaseDateEl = document.getElementById('album-details-purchase-date');
+    const priceEl = document.getElementById('album-details-price');
+
+    if (mediaTypeEl) mediaTypeEl.textContent = album.tipo_midia || 'CD';
+    if (purchaseDateEl) purchaseDateEl.textContent = album.data_compra || '—';
+    if (priceEl) {
+      const priceVal = parseFloat(album.preco_compra);
+      priceEl.textContent = isNaN(priceVal) ? '—' : priceVal.toFixed(2).replace('.', ',');
     }
-  });
+  }
+
+  // Load tracks from backend API
+  try {
+    const tracks = await api.getAlbumTracks(codAlbum);
+    renderAlbumDetailTracks(tracks, codAlbum);
+  } catch (error) {
+    console.error('Erro ao carregar faixas do álbum:', error);
+  }
 }
 
 /**
@@ -672,11 +815,7 @@ function renderAlbumDetailTracks(tracks, codAlbum) {
         <td class="py-3 text-right text-[#5c5540] dark:text-[#ffbf00]/80 font-mono text-sm">
           ${track.tipo_gravacao || '-'}
         </td>
-        <td class="py-3 pr-2 text-center">
-          <button class="opacity-0 group-hover:opacity-100 transition-all size-8 inline-flex items-center justify-center rounded-full bg-gold-gradient text-white shadow-sm hover:scale-105 active:scale-95">
-            <span class="material-symbols-outlined fill text-[18px]">play_arrow</span>
-          </button>
-        </td>
+
       </tr>
     `;
   }).join('');
@@ -711,6 +850,42 @@ function openAlbumEdit(codAlbum) {
     setInputValue(container, '#album-nome', album.nome);
     setInputValue(container, '#album-descricao', album.descricao);
   });
+}
+
+async function openPlaylistEdit(codPlaylist) {
+  const playlist = SpotPerState.cache.playlists.find((p) => p.cod_playlist === codPlaylist);
+  if (!playlist) return;
+
+  try {
+    // Fetch existing tracks for this playlist
+    const tracks = await api.getPlaylistTracks(codPlaylist);
+
+    // Open modal with edit data pre-filled
+    await openModalForEdit('playlist', codPlaylist, {
+      nome: playlist.nome,
+      tracks: tracks.map(t => ({
+        cod_album: t.cod_album,
+        numero_unidade: t.numero_unidade,
+        numero_faixa: t.numero_faixa,
+        descricao: t.nome_faixa,      // Template expects 'descricao'
+        album_nome: t.nome_album,      // Template expects 'album_nome'
+        tempo_execucao: t.tempo_execucao
+      }))
+    });
+
+    // Update modal title for edit mode
+    const titleEl = document.querySelector('#modal-content h2');
+    if (titleEl) titleEl.textContent = 'Editar Playlist';
+
+    const saveBtn = document.getElementById('playlist-save-btn');
+    if (saveBtn) {
+      const labelSpan = saveBtn.querySelector('span:not(.material-symbols-outlined)');
+      if (labelSpan) labelSpan.textContent = 'ATUALIZAR PLAYLIST';
+    }
+  } catch (error) {
+    console.error('Erro ao abrir edição de playlist:', error);
+    alert('Erro ao carregar dados da playlist: ' + error.message);
+  }
 }
 
 async function deleteAlbumUI(codAlbum) {
@@ -827,7 +1002,32 @@ function openPlaylistDetails(codPlaylist) {
       const mins = Math.floor((totalSeconds % 3600) / 60);
       if (durationEl) durationEl.textContent = hours > 0 ? `${hours}h ${mins}min` : `${mins}min`;
 
-      // Render tracks
+      const playAllBtn = document.getElementById('playlist-play-all-btn');
+      if (playAllBtn) {
+        playAllBtn.onclick = async () => {
+          if (tracks.length === 0) return;
+
+          playAllBtn.disabled = true;
+          playAllBtn.classList.add('opacity-70', 'cursor-wait');
+          const originalText = playAllBtn.innerHTML;
+          playAllBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">sync</span><span>Reproduzindo...</span>';
+
+          try {
+            await Promise.all(tracks.map(t =>
+              api.registerPlayback(codPlaylist, t.cod_album, t.numero_unidade, t.numero_faixa)
+            ));
+            openPlaylistDetails(codPlaylist);
+          } catch (error) {
+            console.error('Erro ao reproduzir tudo:', error);
+            alert('Ocorreu um erro ao registrar a reprodução das faixas.');
+          } finally {
+            playAllBtn.disabled = false;
+            playAllBtn.classList.remove('opacity-70', 'cursor-wait');
+            playAllBtn.innerHTML = originalText;
+          }
+        };
+      }
+
       renderPlaylistDetailTracks(tracks, codPlaylist);
     } catch (error) {
       console.error('Erro ao carregar playlist:', error);
@@ -866,7 +1066,8 @@ function renderPlaylistDetailTracks(tracks, codPlaylist) {
             <span class="text-[#8a8060] text-sm italic mt-0.5">${escapeHtml(track.nome_album || '')}</span>
           </div>
         </td>
-        <td class="py-3 text-[#5c5540] dark:text-[#f0ebe0]/60 text-sm">${track.data_ultima_vez_tocada || '-'}</td>
+        <td class="py-3 text-[#5c5540] dark:text-[#f0ebe0]/60 text-sm font-mono">${tempoStr}</td>
+        <td class="py-3 text-[#5c5540] dark:text-[#f0ebe0]/60 text-sm">${track.data_ultima_vez_tocada ? track.data_ultima_vez_tocada.split('.')[0] : '-'}</td>
         <td class="py-3 text-right text-[#5c5540] dark:text-[#f0ebe0]/60 font-mono text-sm">${track.num_vezes_tocada || 0}</td>
         <td class="py-3 pr-2 text-center">
           <button onclick="registerPlayback(${codPlaylist}, ${track.cod_album}, ${track.numero_unidade}, ${track.numero_faixa})"
@@ -901,6 +1102,7 @@ window.registerPlayback = registerPlayback;
 
 function switchMainTab(view) {
   SpotPerState.view = view;
+  renderComposerCarousel(); // Re-render to apply/remove period filter based on view
   renderMain();
 }
 
@@ -944,11 +1146,17 @@ function syncFormatFilterVisual() {
 }
 
 function setPeriodFilter(codPeriodo, periodName) {
-  SpotPerState.filters.periodId = codPeriodo;
-  SpotPerState.context.periodId = codPeriodo; // Also set context for auto-fill
+  // Handle empty string as null (for "Todos" option)
+  SpotPerState.filters.periodId = codPeriodo || null;
+  SpotPerState.context.periodId = codPeriodo || null;
+
   const sectionTitle = document.getElementById('composer-section-title');
   if (sectionTitle) sectionTitle.textContent = `Selecionar Compositor (${periodName})`;
+
+  // Re-render periods, composers (filtered by period), and main content
   renderPeriods();
+  renderComposerCarousel(); // Re-render to filter by new period
+  SpotPerState.filters.composerId = null; // Reset composer filter when period changes
   renderMain();
 }
 
@@ -966,9 +1174,54 @@ function renderComposerCarousel() {
   const carousel = document.getElementById('composer-carousel');
   if (!carousel) return;
 
-  const composers = SpotPerState.cache.composers || [];
+  let composers = SpotPerState.cache.composers || [];
+
+  // Filter composers by period ONLY for albums/tracks views (not playlists)
+  if (SpotPerState.view !== 'playlists' && SpotPerState.filters.periodId) {
+    composers = composers.filter(c => c.cod_periodo === SpotPerState.filters.periodId);
+  }
+
+  // Filter by search term
+  const searchTerm = (SpotPerState.filters.composerSearch || '').toLowerCase();
+  if (searchTerm) {
+    composers = composers.filter(c => c.nome.toLowerCase().includes(searchTerm));
+  }
+
   const isAllActive = !SpotPerState.filters.composerId;
 
+  // Check if carousel structure exists
+  let itemsContainer = document.getElementById('composer-items-container');
+
+  if (!itemsContainer) {
+    // Initial render: search input + items container
+    carousel.innerHTML = `
+      <div class="flex items-center gap-2 min-w-[160px] mr-2">
+        <input type="text" id="composer-search-input" 
+               placeholder="Buscar..." 
+               value="${escapeHtml(SpotPerState.filters.composerSearch || '')}"
+               class="w-full px-3 py-2 text-xs rounded-full bg-[#23201a] border border-[#393528] text-white placeholder-[#6d6655] focus:outline-none focus:border-primary" />
+      </div>
+      <div id="composer-items-container" class="contents"></div>
+    `;
+
+    itemsContainer = document.getElementById('composer-items-container');
+
+    // Attach search event
+    const searchInput = document.getElementById('composer-search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        SpotPerState.filters.composerSearch = e.target.value;
+        // Call directly to update only items
+        renderComposerCarousel();
+      });
+      // Restore focus/cursor if this was a re-render (fallback)
+      if (SpotPerState.filters.composerSearch) {
+        searchInput.focus();
+      }
+    }
+  }
+
+  // Static buttons (Novo, Todos)
   let html = `
     <button onclick="openModal('composer')" class="flex flex-col items-center gap-2 group min-w-[80px]">
       <div class="size-20 rounded-full border border-border-light dark:border-[#393528] bg-panel-light dark:bg-[#181611] flex items-center justify-center hover:bg-primary/5 dark:hover:bg-[#23201a] hover:border-primary/50 transition-all shadow-sm group-hover:scale-105">
@@ -987,29 +1240,75 @@ function renderComposerCarousel() {
     </button>
   `;
 
+  // Render composer items
   composers.forEach(c => {
     const isActive = SpotPerState.filters.composerId === c.cod_compositor;
     const shortName = c.nome.split(' ').slice(-1)[0];
     html += `
-      <button data-action="select-composer" data-composer-id="${c.cod_compositor}" class="flex flex-col items-center gap-2 group min-w-[80px]">
-        <div class="size-20 rounded-full border-2 ${isActive ? 'border-primary bg-primary/10 shadow-amber-glow' : 'border-[#393528]'} flex items-center justify-center overflow-hidden transition-all group-hover:scale-105">
-          <span class="material-symbols-outlined ${isActive ? 'text-primary' : 'text-[#8e8672]'} !text-[28px]">person</span>
-        </div>
+      <div class="flex flex-col items-center gap-2 group min-w-[80px] relative">
+        <button data-action="select-composer" data-composer-id="${c.cod_compositor}" class="flex flex-col items-center gap-2">
+          <div class="size-20 rounded-full border-2 ${isActive ? 'border-primary bg-primary/10 shadow-amber-glow' : 'border-[#393528]'} flex items-center justify-center overflow-hidden transition-all group-hover:scale-105 relative">
+            <span class="material-symbols-outlined ${isActive ? 'text-primary' : 'text-[#8e8672]'} !text-[28px]">person</span>
+          </div>
+        </button>
+        <button onclick="openComposerEdit(${c.cod_compositor})" 
+                class="absolute top-0 right-0 size-6 rounded-full bg-[#23201a] border border-[#393528] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:border-primary hover:text-primary"
+                title="Editar ${escapeHtml(c.nome)}">
+          <span class="material-symbols-outlined !text-[14px] text-[#8e8672]">edit</span>
+        </button>
         <span class="${isActive ? 'text-primary' : 'text-[#8e8672]'} text-xs text-center max-w-[80px] truncate" title="${escapeHtml(c.nome)}">${escapeHtml(shortName)}</span>
-      </button>
+      </div>
     `;
   });
 
-  carousel.innerHTML = html;
+  itemsContainer.innerHTML = html;
 }
 
 function renderInterpreterCarousel() {
   const carousel = document.getElementById('interpreter-carousel');
   if (!carousel) return;
 
-  const interpreters = SpotPerState.cache.interpreters || [];
+  let interpreters = SpotPerState.cache.interpreters || [];
+
+  // Filter by search term
+  const searchTerm = (SpotPerState.filters.interpreterSearch || '').toLowerCase();
+  if (searchTerm) {
+    interpreters = interpreters.filter(i => i.nome.toLowerCase().includes(searchTerm));
+  }
+
   const isAllActive = !SpotPerState.filters.interpreterId;
 
+  // Check if carousel structure exists
+  let itemsContainer = document.getElementById('interpreter-items-container');
+
+  if (!itemsContainer) {
+    // Initial render: search input + items container
+    carousel.innerHTML = `
+      <div class="flex items-center gap-2 min-w-[160px] mr-2">
+        <input type="text" id="interpreter-search-input" 
+               placeholder="Buscar..." 
+               value="${escapeHtml(SpotPerState.filters.interpreterSearch || '')}"
+               class="w-full px-3 py-2 text-xs rounded-full bg-[#23201a] border border-[#393528] text-white placeholder-[#6d6655] focus:outline-none focus:border-primary" />
+      </div>
+      <div id="interpreter-items-container" class="contents"></div>
+    `;
+
+    itemsContainer = document.getElementById('interpreter-items-container');
+
+    // Attach search event
+    const searchInput = document.getElementById('interpreter-search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        SpotPerState.filters.interpreterSearch = e.target.value;
+        renderInterpreterCarousel();
+      });
+      if (SpotPerState.filters.interpreterSearch) {
+        searchInput.focus();
+      }
+    }
+  }
+
+  // Static buttons (Novo, Todos)
   let html = `
     <button onclick="openModal('interpreter')" class="flex flex-col items-center gap-2 group min-w-[80px]">
       <div class="size-20 rounded-full border border-border-light dark:border-[#393528] bg-panel-light dark:bg-[#181611] flex items-center justify-center hover:bg-primary/5 hover:border-primary/50 transition-all shadow-sm group-hover:scale-105">
@@ -1028,28 +1327,38 @@ function renderInterpreterCarousel() {
     </button>
   `;
 
+  // Render interpreter items
   interpreters.forEach(i => {
     const isActive = SpotPerState.filters.interpreterId === i.cod_interprete;
     const shortName = i.nome.split(' ').slice(-1)[0];
     html += `
-      <button data-action="select-interpreter" data-interpreter-id="${i.cod_interprete}" class="flex flex-col items-center gap-2 group min-w-[80px]">
-        <div class="size-20 rounded-full border-2 ${isActive ? 'border-primary bg-primary/10 shadow-amber-glow' : 'border-[#393528]'} flex items-center justify-center overflow-hidden transition-all group-hover:scale-105">
-          <span class="material-symbols-outlined ${isActive ? 'text-primary' : 'text-[#8e8672]'} !text-[28px]">mic</span>
-        </div>
+      <div class="flex flex-col items-center gap-2 group min-w-[80px] relative">
+        <button data-action="select-interpreter" data-interpreter-id="${i.cod_interprete}" class="flex flex-col items-center gap-2">
+          <div class="size-20 rounded-full border-2 ${isActive ? 'border-primary bg-primary/10 shadow-amber-glow' : 'border-[#393528]'} flex items-center justify-center overflow-hidden transition-all group-hover:scale-105 relative">
+            <span class="material-symbols-outlined ${isActive ? 'text-primary' : 'text-[#8e8672]'} !text-[28px]">mic</span>
+          </div>
+        </button>
+        <button onclick="openInterpreterEdit(${i.cod_interprete})" 
+                class="absolute top-0 right-0 size-6 rounded-full bg-[#23201a] border border-[#393528] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:border-primary hover:text-primary"
+                title="Editar ${escapeHtml(i.nome)}">
+          <span class="material-symbols-outlined !text-[14px] text-[#8e8672]">edit</span>
+        </button>
         <span class="${isActive ? 'text-primary' : 'text-[#8e8672]'} text-xs text-center max-w-[80px] truncate" title="${escapeHtml(i.nome)}">${escapeHtml(shortName)}</span>
-      </button>
+      </div>
     `;
   });
 
-  carousel.innerHTML = html;
+  itemsContainer.innerHTML = html;
 }
 
 function syncComposerSelection() {
-  // placeholder
+  // Re-render to update visual selection
+  renderComposerCarousel();
 }
 
 function syncInterpreterSelection() {
-  // placeholder
+  // Re-render to update visual selection
+  renderInterpreterCarousel();
 }
 
 function renderPeriods() {
@@ -1058,10 +1367,24 @@ function renderPeriods() {
 
   const periods = SpotPerState.cache.periods || [];
 
+  // Start with "Todos" option
+  const isAllActive = SpotPerState.filters.periodId === null;
+  let html = `
+    <div class="group flex items-start gap-4 cursor-pointer period-item" data-action="select-period" data-period-id="" data-period-name="Todos">
+      <div class="relative shrink-0 pt-1">
+        <div class="size-4 rounded-full border ${isAllActive ? 'border-primary bg-primary' : 'border-[#5a5445] bg-[#181611]'} z-10 relative"></div>
+      </div>
+      <div class="flex flex-col gap-1 -mt-1 group-hover:translate-x-1 transition-transform">
+        <h3 class="${isAllActive ? 'text-primary' : 'text-off-white'} group-hover:text-primary text-lg font-medium">Todos</h3>
+        <p class="text-[#6d6655] text-sm">Todos os períodos</p>
+      </div>
+    </div>
+  `;
+
   if (periods.length === 0) {
-    periodList.innerHTML = `<div class="text-ink-muted dark:text-[#8e8672] text-sm mb-4">Nenhum período carregado.</div>`;
+    html += `<div class="text-ink-muted dark:text-[#8e8672] text-sm mb-4">Nenhum período carregado.</div>`;
   } else {
-    periodList.innerHTML = periods.map(period => {
+    html += periods.map(period => {
       const isActive = SpotPerState.filters.periodId === period.cod_periodo;
       return `
         <div class="group flex items-start gap-4 cursor-pointer period-item" data-action="select-period" data-period-id="${period.cod_periodo}" data-period-name="${escapeHtml(period.descricao)}">
@@ -1076,6 +1399,8 @@ function renderPeriods() {
       `;
     }).join('');
   }
+
+  periodList.innerHTML = html;
 
   // Add create period button
   periodList.insertAdjacentHTML('beforeend', `
@@ -1104,3 +1429,96 @@ function escapeHtml(input) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
+
+/**
+ * Povoa o banco de dados com dados de teste
+ */
+async function povoarDados() {
+  if (!confirm('Isso irá LIMPAR todos os dados existentes e inserir dados de teste. Continuar?')) {
+    return;
+  }
+
+  // Show loading state
+  const btn = document.querySelector('[onclick*="povoarDados"]');
+  let originalText = '';
+  if (btn) {
+    originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin !text-[16px]">sync</span><span>Povoando...</span>';
+  }
+
+  try {
+    await api.populateDatabase();
+    alert('Banco de dados povoado com sucesso! A página será recarregada.');
+    window.location.reload();
+  } catch (error) {
+    alert('Erro ao povoar banco de dados: ' + error.message);
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  }
+}
+
+/**
+ * Enables drag-to-scroll functionality on a scrollable element
+ */
+function enableDragScroll(element) {
+  if (!element || element._dragScrollEnabled) return;
+
+  element._dragScrollEnabled = true;
+
+  let isDown = false;
+  let startX;
+  let scrollLeft;
+
+  element.addEventListener('mousedown', (e) => {
+    // Don't drag if clicking on interactive elements
+    if (e.target.closest('button, a, input')) return;
+
+    isDown = true;
+    element.classList.add('cursor-grabbing');
+    element.style.cursor = 'grabbing';
+    startX = e.pageX - element.offsetLeft;
+    scrollLeft = element.scrollLeft;
+  });
+
+  element.addEventListener('mouseleave', () => {
+    isDown = false;
+    element.classList.remove('cursor-grabbing');
+    element.style.cursor = 'grab';
+  });
+
+  element.addEventListener('mouseup', () => {
+    isDown = false;
+    element.classList.remove('cursor-grabbing');
+    element.style.cursor = 'grab';
+  });
+
+  element.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - element.offsetLeft;
+    const walk = (x - startX) * 1.5; // Scroll speed multiplier
+    element.scrollLeft = scrollLeft - walk;
+  });
+
+  // Set initial cursor
+  element.style.cursor = 'grab';
+}
+
+/**
+ * Initialize drag scroll on carousels
+ */
+function initCarouselDragScroll() {
+  const composerCarousel = document.getElementById('composer-carousel');
+  const interpreterCarousel = document.getElementById('interpreter-carousel');
+
+  if (composerCarousel) enableDragScroll(composerCarousel);
+  if (interpreterCarousel) enableDragScroll(interpreterCarousel);
+}
+
+// Export globally
+window.povoarDados = povoarDados;
+window.enableDragScroll = enableDragScroll;
+window.initCarouselDragScroll = initCarouselDragScroll;

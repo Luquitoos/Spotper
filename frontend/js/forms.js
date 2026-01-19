@@ -1,39 +1,26 @@
-// js/forms.js - Gerenciamento de formulários e submissão
-
-/**
- * Captura o evento de submit de forma global (Event Delegation)
- * já que os modais são carregados dinamicamente.
- */
 document.addEventListener('submit', async (e) => {
     e.preventDefault();
-
     const form = e.target;
     const formId = form.id || form.getAttribute('data-form-type');
-
     if (!formId) {
         console.warn('Formulário sem ID ou data-form-type');
         return;
     }
-
-    // Transforma os dados do formulário em um objeto simples
+    if ((formId === 'track-form' || formId === 'track') &&
+        (form.dataset.albumDraftMode === 'true' ||
+            (typeof window.isAddingTrackToAlbum === 'function' && window.isAddingTrackToAlbum()))) {
+        console.log('[forms.js] Skipping track-form - handled by album draft flow');
+        return;
+    }
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
-
     console.log(`%c[SpotPer API] Enviando dados de: ${formId}`, 'color: #f4c025; font-weight: bold;');
     console.log(data);
-
-    // Validação básica
     if (!validateForm(formId, data)) {
         return;
     }
-
-    // Processa e envia os dados
     await submitForm(formId, data, form);
 });
-
-/**
- * Valida o formulário antes de enviar
- */
 function validateForm(formId, data) {
     switch (formId) {
         case 'composer-form':
@@ -61,10 +48,6 @@ function validateForm(formId, data) {
             return true;
     }
 }
-
-/**
- * Valida formulário de compositor
- */
 function validateComposerForm(data) {
     if (!data.nome || data.nome.trim() === '') {
         showError('Nome do compositor é obrigatório');
@@ -74,7 +57,7 @@ function validateComposerForm(data) {
         showError('Data de nascimento é obrigatória');
         return false;
     }
-    if (!data.cod_periodo) {
+    if (!data.cod_periodo && !data.cod_compositor) {
         showError('Período musical é obrigatório');
         return false;
     }
@@ -84,10 +67,6 @@ function validateComposerForm(data) {
     }
     return true;
 }
-
-/**
- * Valida formulário de intérprete
- */
 function validateInterpreterForm(data) {
     if (!data.nome || data.nome.trim() === '') {
         showError('Nome do intérprete é obrigatório');
@@ -99,18 +78,11 @@ function validateInterpreterForm(data) {
     }
     return true;
 }
-
-
-/**
- * Valida formulário de gravadora
- */
 function validateLabelForm(data) {
     if (!data.nome || data.nome.trim() === '') {
         showError('Nome da gravadora é obrigatório');
         return false;
     }
-
-    // Validate homepage URL if provided
     if (data.homepage && data.homepage.trim() !== '') {
         const urlPattern = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)$/;
         if (!urlPattern.test(data.homepage)) {
@@ -118,14 +90,8 @@ function validateLabelForm(data) {
             return false;
         }
     }
-
     return true;
 }
-
-
-/**
- * Valida formulário de álbum
- */
 function validateAlbumForm(data) {
     if (!data.nome || data.nome.trim() === '') {
         showError('Nome do álbum é obrigatório');
@@ -161,12 +127,28 @@ function validateAlbumForm(data) {
         showError('Tipo de mídia é obrigatório');
         return false;
     }
+    if (typeof albumDraftTracks !== 'undefined' && albumDraftTracks.length > 0) {
+        const tipoMidia = data.tipo_midia;
+        if (tipoMidia === 'CD') {
+            const invalidTracks = albumDraftTracks.filter(t => !t.tipo_gravacao || t.tipo_gravacao === '');
+            if (invalidTracks.length > 0) {
+                showError(`Faixas de CD devem ter tipo de gravação (ADD ou DDD). ${invalidTracks.length} faixa(s) sem tipo definido.`);
+                return false;
+            }
+        } else if (tipoMidia === 'VINIL' || tipoMidia === 'DOWNLOAD') {
+            const tracksWithType = albumDraftTracks.filter(t => t.tipo_gravacao && t.tipo_gravacao !== '');
+            if (tracksWithType.length > 0) {
+                albumDraftTracks.forEach(t => {
+                    if (t.tipo_gravacao) {
+                        console.log(`Clearing tipo_gravacao for track: ${t.descricao} (${tipoMidia} doesn't support recording type)`);
+                        t.tipo_gravacao = null;
+                    }
+                });
+            }
+        }
+    }
     return true;
 }
-
-/**
- * Valida formulário de playlist
- */
 function validatePlaylistForm(data) {
     if (!data.nome || data.nome.trim() === '') {
         showError('Nome da playlist é obrigatório');
@@ -174,10 +156,6 @@ function validatePlaylistForm(data) {
     }
     return true;
 }
-
-/**
- * Valida formulário de período
- */
 function validatePeriodForm(data) {
     if (!data.descricao || data.descricao.trim() === '') {
         showError('Descrição do período é obrigatória');
@@ -193,16 +171,12 @@ function validatePeriodForm(data) {
     }
     return true;
 }
-
-/**
- * Valida formulário de faixa (UI apenas)
- */
 function validateTrackForm(data) {
     if (!data.descricao || data.descricao.trim() === '') {
         showError('Descrição da faixa é obrigatória');
         return false;
     }
-    if (!data.cod_tipo_composicao) {
+    if (!data.cod_tipo_composicao && !data.tipo_composicao_texto) {
         showError('Tipo de composição é obrigatório');
         return false;
     }
@@ -212,62 +186,37 @@ function validateTrackForm(data) {
     }
     return true;
 }
-
-/**
- * Submete o formulário
- */
 async function submitForm(formId, data, formElement) {
     const submitButton = formElement.querySelector('button[type="submit"]');
     const originalText = submitButton ? submitButton.innerHTML : '';
-
     if (submitButton) {
         submitButton.disabled = true;
         submitButton.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Enviando...';
     }
-
     try {
-        // Processa dados específicos do formulário
         const processedData = processFormData(formId, data);
-
-        // Envia para o backend real
         await sendToBackend(formId, processedData);
-
-        // Atualiza cache após sucesso
         await refreshCacheAfterSubmit(formId);
-
-        // Feedback visual de sucesso
         if (submitButton) {
             submitButton.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Sucesso!';
             submitButton.classList.add('bg-green-600');
         }
-
-        // Clear edit mode data
         currentEditData = null;
-
-        // Fecha o modal e re-renderiza após sucesso
         setTimeout(() => {
             closeModal();
             if (typeof renderAll === 'function') renderAll();
         }, 1000);
-
     } catch (error) {
         console.error('Erro ao enviar formulário:', error);
         showError(error.message || 'Erro ao enviar dados');
-
         if (submitButton) {
             submitButton.disabled = false;
             submitButton.innerHTML = originalText;
         }
     }
 }
-
-/**
- * Processa dados do formulário antes de enviar
- */
 function processFormData(formId, data) {
     const processed = { ...data };
-
-    // Converte strings numéricas para números
     if (processed.cod_gravadora) processed.cod_gravadora = parseInt(processed.cod_gravadora);
     if (processed.cod_periodo) processed.cod_periodo = parseInt(processed.cod_periodo);
     if (processed.cod_tipo_composicao) processed.cod_tipo_composicao = parseInt(processed.cod_tipo_composicao);
@@ -276,48 +225,47 @@ function processFormData(formId, data) {
     if (processed.ano_inicio) processed.ano_inicio = parseInt(processed.ano_inicio);
     if (processed.ano_fim) processed.ano_fim = parseInt(processed.ano_fim);
     if (processed.tempo_execucao) processed.tempo_execucao = parseInt(processed.tempo_execucao);
-
-    // Remove campos vazios opcionais
     Object.keys(processed).forEach(key => {
         if (processed[key] === '' || processed[key] === null) {
             delete processed[key];
         }
     });
-
+    if (formId === 'label-form' || formId === 'label') {
+        return processLabelData(processed);
+    }
+    if (formId === 'track-form' || formId === 'track') {
+        return processTrackData(processed);
+    }
+    if (formId === 'playlist-form' || formId === 'playlist') {
+        return processPlaylistData(processed);
+    }
+    if (formId === 'album-form' || formId === 'album') {
+        return processAlbumData(processed);
+    }
     return processed;
 }
-
-/**
- * Simula chamada ao backend (será substituído quando backend estiver pronto)
- */
 async function simulateBackendCall(formId, data) {
     return new Promise((resolve, reject) => {
         setTimeout(() => {
             console.log("%c[Backend Simulado] Resposta 201: Criado com sucesso!", "color: #22c55e");
             console.log("Dados que seriam enviados:", data);
-
-            // Simula validações do backend
             if (formId.includes('album') && data.tipo_midia === 'DOWNLOAD' && data.qtd_unidades > 1) {
                 reject(new Error('Downloads só podem ter 1 unidade'));
                 return;
             }
-
             resolve({ success: true, data });
         }, 1500);
     });
 }
-
-/**
- * Função que será usada quando o backend estiver pronto
- */
 async function sendToBackend(endpoint, payload) {
     try {
         let response;
-
-        // Check if we're editing (currentEditData.id exists) or creating new
-        const isEditing = currentEditData && currentEditData.id;
-        const entityId = isEditing ? currentEditData.id : null;
-
+        const entityId = payload.cod_compositor || payload.cod_interprete || payload.cod_gravadora ||
+            payload.cod_album || payload.cod_playlist || payload.cod_periodo ||
+            (currentEditData && (currentEditData.cod_compositor || currentEditData.cod_interprete ||
+                currentEditData.cod_gravadora || currentEditData.cod_album ||
+                currentEditData.cod_playlist || currentEditData.cod_periodo || currentEditData.id));
+        const isEditing = !!entityId;
         switch (endpoint) {
             case 'composer-form':
             case 'composer':
@@ -339,9 +287,7 @@ async function sendToBackend(endpoint, payload) {
                 break;
             case 'album-form':
             case 'album':
-                response = isEditing
-                    ? await api.updateAlbum(entityId, payload)
-                    : await api.createAlbum(payload);
+                response = await api.createAlbum(payload);
                 break;
             case 'playlist-form':
             case 'playlist':
@@ -368,18 +314,12 @@ async function sendToBackend(endpoint, payload) {
             default:
                 throw new Error(`Endpoint desconhecido: ${endpoint}`);
         }
-
         return response;
     } catch (error) {
         throw new Error(error.message || 'Erro ao comunicar com o servidor');
     }
 }
-
-/**
- * Mostra mensagem de erro
- */
 function showError(message) {
-    // Cria ou atualiza elemento de erro
     let errorElement = document.getElementById('form-error-message');
     if (!errorElement) {
         errorElement = document.createElement('div');
@@ -387,23 +327,16 @@ function showError(message) {
         errorElement.className = 'fixed top-4 right-4 bg-red-600 text-white px-6 py-4 rounded-lg shadow-lg z-50 flex items-center gap-2';
         document.body.appendChild(errorElement);
     }
-
     errorElement.innerHTML = `
         <span class="material-symbols-outlined">error</span>
         <span>${message}</span>
     `;
-
-    // Remove após 5 segundos
     setTimeout(() => {
         if (errorElement) {
             errorElement.remove();
         }
     }, 5000);
 }
-
-/**
- * Mostra mensagem de sucesso
- */
 function showSuccess(message) {
     let successElement = document.getElementById('form-success-message');
     if (!successElement) {
@@ -412,22 +345,16 @@ function showSuccess(message) {
         successElement.className = 'fixed top-4 right-4 bg-green-600 text-white px-6 py-4 rounded-lg shadow-lg z-50 flex items-center gap-2';
         document.body.appendChild(successElement);
     }
-
     successElement.innerHTML = `
         <span class="material-symbols-outlined">check_circle</span>
         <span>${message}</span>
     `;
-
     setTimeout(() => {
         if (successElement) {
             successElement.remove();
         }
     }, 3000);
 }
-
-/**
- * Atualiza o cache após submissão de formulário
- */
 async function refreshCacheAfterSubmit(formId) {
     const cache = SpotPerState.cache;
     try {
@@ -468,4 +395,79 @@ async function refreshCacheAfterSubmit(formId) {
     } catch (error) {
         console.error('[SpotPer] Erro ao atualizar cache:', error);
     }
+}
+function processTrackData(data) {
+    const processed = { ...data };
+    if (processed.cod_tipo_composicao) processed.cod_tipo_composicao = parseInt(processed.cod_tipo_composicao);
+    if (processed.tempo_execucao) {
+        const tempoStr = String(processed.tempo_execucao);
+        if (tempoStr.includes(':')) {
+            const parts = tempoStr.split(':');
+            processed.tempo_execucao = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+        } else {
+            processed.tempo_execucao = parseInt(tempoStr);
+        }
+    }
+    if (processed.cod_album) processed.cod_album = parseInt(processed.cod_album);
+    if (processed.numero_unidade) processed.numero_unidade = parseInt(processed.numero_unidade);
+    if (processed.numero_faixa) processed.numero_faixa = parseInt(processed.numero_faixa);
+    if (window.getSelectedComposers) {
+        processed.compositores = window.getSelectedComposers();
+    }
+    if (window.getSelectedInterpreters) {
+        processed.interpretes = window.getSelectedInterpreters();
+    }
+    return processed;
+}
+function processPlaylistData(data) {
+    const processed = { ...data };
+    if (window.getPlaylistDraftTracks) {
+        const tracks = window.getPlaylistDraftTracks();
+        processed.faixas = tracks.map(t => ({
+            cod_album: t.cod_album,
+            numero_unidade: t.numero_unidade,
+            numero_faixa: t.numero_faixa
+        }));
+    }
+    return processed;
+}
+function processLabelData(data) {
+    const processed = { ...data };
+    const phones = [];
+    Object.keys(data).forEach(key => {
+        const match = key.match(/telefones\[(\d+)\]\.(numero|tipo)/);
+        if (match) {
+            const index = parseInt(match[1]);
+            const field = match[2];
+            if (!phones[index]) phones[index] = {};
+            phones[index][field] = data[key];
+            delete processed[key];
+        }
+    });
+    processed.telefones = phones.filter(p => p && p.numero && p.numero.trim() !== '');
+    return processed;
+}
+function processAlbumData(data) {
+    const processed = { ...data };
+    console.log('[processAlbumData] albumDraftTracks:', typeof albumDraftTracks, albumDraftTracks);
+    if (typeof albumDraftTracks !== 'undefined' && albumDraftTracks.length > 0) {
+        console.log('[processAlbumData] Adding', albumDraftTracks.length, 'tracks to album data');
+        processed.faixas = albumDraftTracks.map((track, idx) => ({
+            numero_unidade: track.numero_unidade || 1,
+            numero_faixa: track.numero_faixa || (idx + 1),
+            descricao: track.descricao,
+            cod_tipo_composicao: track.cod_tipo_composicao || null,
+            tipo_composicao_texto: track.tipo_composicao_texto || null,
+            tipo_gravacao: track.tipo_gravacao || null,
+            tempo_execucao: track.tempo_execucao,
+            compositores: track.compositores || [],
+            interpretes: track.interpretes || []
+        }));
+        console.log('[processAlbumData] processed.faixas:', processed.faixas);
+        albumDraftTracks = [];
+    } else {
+        console.log('[processAlbumData] No tracks in albumDraftTracks or variable undefined');
+    }
+    console.log('[processAlbumData] Final processed data:', processed);
+    return processed;
 }

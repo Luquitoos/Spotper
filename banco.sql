@@ -74,8 +74,8 @@ GO
 CREATE TABLE dbo.TELEFONE_GRAVADORA
 (
     cod_gravadora   INT NOT NULL,
-    telefone        VARCHAR(15) NOT NULL,
-    tipo_telefone   VARCHAR(15) NULL,
+    telefone        VARCHAR(20) NOT NULL,
+    tipo_telefone   VARCHAR(20) NULL,
     
     CONSTRAINT PK_TELEFONE_GRAVADORA 
         PRIMARY KEY (cod_gravadora, telefone),
@@ -407,6 +407,9 @@ CREATE UNIQUE CLUSTERED INDEX IX_VW_MATERIALIZADA_PLAYLIST_QTDALBUNS
 ON dbo.VW_MATERIALIZADA_PLAYLIST_QTDALBUNS (cod_playlist, cod_album);
 GO
 
+-- Visão Materializada: Atende ao requisito "tem visão materializada que tem como atributos o nome da playlist e a quantidade de álbuns que a compõem."
+-- Lógica: Agrupa playlists e álbuns e conta quantas ocorrências existem.
+-- Uso no Backend: Utilizada no banco para manter dados pré-calculados, não chamada diretamente pelo backend.
 CREATE VIEW dbo.PLAYLIST_QUANTIDADE_ALBUNS
 AS
     SELECT 
@@ -416,6 +419,9 @@ AS
     GROUP BY cod_playlist, nome_playlist;
 GO
 
+-- Trigger: Atende ao requisito (iii.b).CDs exigem gravação ADD/DDD. Vinil/Download não podem ter tipo de gravação.
+-- Lógica: Verifica se álbum é CD e gravacao é NULL (erro), ou se é Vinil/Download e gravacao NÃO é NULL (erro).
+-- Uso no Backend: Disparado automaticamente ao inserir/atualizar faixas via routes/tracks.py (criar_faixa, atualizar_faixa).
 CREATE TRIGGER VALIDAR_TIPO_GRAVACAO_FAIXA
 ON dbo.FAIXA
 AFTER INSERT, UPDATE
@@ -451,6 +457,9 @@ BEGIN
 END;
 GO
 
+-- Trigger: Garante integridade das unidades (req i.c.i). Downloads apenas unidade 1, numero_unidade não pode exceder total.
+-- Lógica: Confere se download tem unidade != 1 ou se unidade > qtd_unidades do álbum.
+-- Uso no Backend: Disparado automaticamente via routes/tracks.py.
 CREATE TRIGGER VALIDAR_NUMERO_UNIDADE_FAIXA
 ON dbo.FAIXA
 AFTER INSERT, UPDATE
@@ -485,6 +494,9 @@ BEGIN
 END;
 GO
 
+-- Trigger: Atende à restrição (b). Um álbum não pode ter mais que 64 faixas.
+-- Lógica: Conta faixas do álbum afetado; se > 64, bloqueia.
+-- Uso no Backend: Disparado automaticamente via routes/tracks.py.
 CREATE TRIGGER LIMITE_64_FAIXAS_ALBUM
 ON dbo.FAIXA
 AFTER INSERT, UPDATE
@@ -522,6 +534,9 @@ BEGIN
 END;
 GO
 
+-- Trigger: Atende à restrição (a). Álbuns com faixas Barrocas exigem tipo de gravação DDD.
+-- Lógica: Cruza faixa inserida com compositor e período; se Barroco e não for DDD, bloqueia.
+-- Uso no Backend: Disparado automaticamente via routes/tracks.py.
 CREATE TRIGGER BARROCO_EXIGE_DDD_FAIXA
 ON dbo.FAIXA
 AFTER INSERT, UPDATE
@@ -549,6 +564,9 @@ BEGIN
 END;
 GO
 
+-- Trigger: Reforça restrição (a) ao associar compositores. Impede associação de compositor Barroco a faixa não-DDD.
+-- Lógica: Ao associar compositor, checa se é Barroco e se a faixa alvo não é DDD.
+-- Uso no Backend: Disparado automaticamente via routes/tracks.py (associar_compositor_faixa).
 CREATE TRIGGER BARROCO_EXIGE_DDD_COMPOSITOR
 ON dbo.FAIXA_COMPOSITOR
 AFTER INSERT, UPDATE
@@ -576,6 +594,9 @@ BEGIN
 END;
 GO
 
+-- Trigger: Atende à restrição (d). Preço do álbum não pode exceder 3x a média dos álbuns DDD.
+-- Lógica: Calcula média de álbuns DDD existentes, multiplica por 3 e compara com preço inserido.
+-- Uso no Backend: Disparado automaticamente via routes/albums.py (criar_album, atualizar_album).
 CREATE TRIGGER VALIDAR_PRECO_ALBUM
 ON dbo.ALBUM
 AFTER INSERT, UPDATE
@@ -612,6 +633,9 @@ BEGIN
 END;
 GO
 
+-- Trigger: Garante integridade do tipo de mídia (req i.c). Não permite alteração após criação.
+-- Lógica: Compara tipo_midia novo com antigo (deleted); se diferente, bloqueia.
+-- Uso no Backend: Disparado automaticamente via routes/albums.py.
 CREATE TRIGGER IMPEDIR_ALTERACAO_TIPO_MIDIA
 ON dbo.ALBUM
 AFTER UPDATE
@@ -636,6 +660,9 @@ BEGIN
 END;
 GO
 
+-- Trigger: Mantém atualizado o tempo total da playlist, conforme requisito (ix.a).
+-- Lógica: Soma tempo de todas as faixas da playlist afetada e atualiza campo tempo_total_execucao.
+-- Uso no Backend: Disparado automaticamente via routes/playlists.py (adicionar/remover faixas).
 CREATE TRIGGER ATUALIZAR_TEMPO_PLAYLIST
 ON dbo.PLAYLIST_FAIXA
 AFTER INSERT, DELETE
@@ -674,6 +701,9 @@ BEGIN
 END;
 GO
 
+-- Trigger: Reforça restrição (a) na alteração de compositor. Impede tornar Barroco um compositor com faixas não-DDD.
+-- Lógica: Se período mudar para Barroco, varre faixas do compositor buscando não-DDD.
+-- Uso no Backend: Disparado automaticamente via routes/composers.py.
 CREATE TRIGGER BARROCO_PERIODO_UPDATE
 ON dbo.COMPOSITOR
 AFTER UPDATE
@@ -704,6 +734,9 @@ BEGIN
 END;
 GO
 
+-- Trigger: Reforça restrição (a) na alteração de faixa. Impede remover DDD de faixa com compositor Barroco.
+-- Lógica: Se alterou gravacao e deixou de ser DDD, varre compositores da faixa; se achar Barroco, bloqueia.
+-- Uso no Backend: Disparado automaticamente via routes/tracks.py.
 CREATE TRIGGER BARROCO_FAIXA_UPDATE_GRAVACAO
 ON dbo.FAIXA
 AFTER UPDATE
@@ -734,6 +767,9 @@ BEGIN
 END;
 GO
 
+-- Trigger: Reforça restrição (d) ao alterar faixas. Recalcula se o preço do álbum ainda é válido após mudanças nas faixas.
+-- Lógica: Recalcula se álbum afetado continua válido considerando nova média DDD global.
+-- Uso no Backend: Disparado automaticamente via routes/tracks.py.
 CREATE TRIGGER VALIDAR_PRECO_APOS_FAIXA
 ON dbo.FAIXA
 AFTER INSERT, UPDATE, DELETE
@@ -791,6 +827,9 @@ BEGIN
 END;
 GO
 
+-- Função: Atende à solicitação "Defina uma função que... saída todos os álbuns com obras compostas pelo compositor."
+-- Lógica: Faz JOIN de Compositor -> Faixa_Compositor -> Faixa -> Álbum e filtra por nome (LIKE).
+-- Uso no Backend: Chamada via routes/composers.py (buscar_albuns_compositor).
 CREATE FUNCTION dbo.BUSCAR_ALBUNS_POR_COMPOSITOR
 (
     @nome_compositor VARCHAR(150)
@@ -823,6 +862,9 @@ RETURN
 GO
 
 
+-- Procedure: Atende ao requisito (ix.b), atualizando data e número de vezes tocada de uma faixa.
+-- Lógica: Incrementa num_vezes_tocada e seta data_ultima_vez_tocada = GETDATE().
+-- Uso no Backend: Chamada via routes/playlists.py (registrar_reproducao).
 CREATE PROCEDURE dbo.REGISTRAR_REPRODUCAO
     @param_cod_playlist INT,
     @param_cod_album INT,
@@ -847,6 +889,9 @@ BEGIN
 END;
 GO
 
+-- Procedure: Realiza inserção de álbum cumprindo requisitos (i) de dados obrigatórios e opcionais.
+-- Lógica: Insere na tabela ALBUM e retorna o ID gerado (SCOPE_IDENTITY).
+-- Uso no Backend: Pode ser usada via routes/albums.py (embora código atual use INSERT direto).
 CREATE PROCEDURE dbo.INSERIR_ALBUM
     @param_nome VARCHAR(150),
     @param_descricao VARCHAR(400),
@@ -885,6 +930,9 @@ BEGIN
 END;
 GO
 
+-- Procedure: Realiza inserção de faixa cumprindo requisitos (iii) e verificando integridade sequencial.
+-- Lógica: Verifica se faixa já existe e se numero anterior existe (sequência); insere se OK.
+-- Uso no Backend: Pode ser usada via routes/tracks.py (código atual usa INSERT direto).
 CREATE PROCEDURE dbo.INSERIR_FAIXA
     @param_cod_album INT,
     @param_numero_unidade TINYINT,
@@ -946,6 +994,9 @@ BEGIN
 END;
 GO
 
+-- Procedure: Realiza a associação N:N entre faixa e compositor (req iii.c).
+-- Lógica: Verifica existência de faixa e compositor, depois insere na tabela de junção.
+-- Uso no Backend: Pode ser usada via routes/tracks.py (associar_compositor_faixa).
 CREATE PROCEDURE dbo.ASSOCIAR_COMPOSITOR_FAIXA
     @param_cod_album INT,
     @param_numero_unidade TINYINT,
@@ -983,6 +1034,9 @@ BEGIN
 END;
 GO
 
+-- Procedure: Realiza a associação N:N entre faixa e intérprete (req iii.c).
+-- Lógica: Verifica existência de faixa e intérprete, depois insere na tabela de junção.
+-- Uso no Backend: Pode ser usada via routes/tracks.py (associar_interprete_faixa).
 CREATE PROCEDURE dbo.ASSOCIAR_INTERPRETE_FAIXA
     @param_cod_album INT,
     @param_numero_unidade TINYINT,
@@ -1020,6 +1074,9 @@ BEGIN
 END;
 GO
 
+-- Procedure: Atende ao requisito (i) de testes "Criação de playlists no banco de dados".
+-- Lógica: Insere nova playlist com tempo zerado e retorna ID.
+-- Uso no Backend: Pode ser usada via routes/playlists.py (criar_playlist).
 CREATE PROCEDURE dbo.CRIAR_PLAYLIST
     @param_nome VARCHAR(150),
     @param_cod_playlist_saida INT OUTPUT
@@ -1046,6 +1103,9 @@ BEGIN
 END;
 GO
 
+-- Procedure: Atende ao requisito (ii) de testes "Manutenção de playlists" (inserção).
+-- Lógica: Verifica existência, duplicidade, calcula próxima ordem e insere na PLAYLIST_FAIXA.
+-- Uso no Backend: Pode ser usada via routes/playlists.py (adicionar_faixa_playlist).
 CREATE PROCEDURE dbo.ADICIONAR_FAIXA_PLAYLIST
     @param_cod_playlist INT,
     @param_cod_album INT,
@@ -1104,6 +1164,9 @@ BEGIN
 END;
 GO
 
+-- Procedure: Atende ao requisito (ii) de testes "Manutenção de playlists" (remoção).
+-- Lógica: Deleta registro da tabela PLAYLIST_FAIXA baseado nos IDs.
+-- Uso no Backend: Pode ser usada via routes/playlists.py (remover_faixa_playlist).
 CREATE PROCEDURE dbo.REMOVER_FAIXA_PLAYLIST
     @param_cod_playlist INT,
     @param_cod_album INT,
@@ -1126,6 +1189,7 @@ BEGIN
 END;
 GO
 
+-- Procedure: Helper para listar álbuns (suporte a req i).
 CREATE PROCEDURE dbo.LISTAR_ALBUNS
 AS
 BEGIN
@@ -1144,6 +1208,7 @@ BEGIN
 END;
 GO
 
+-- Procedure: Helper para listar faixas (suporte a req ii/iii).
 CREATE PROCEDURE dbo.LISTAR_FAIXAS_ALBUM
     @param_cod_album INT
 AS
@@ -1163,6 +1228,7 @@ BEGIN
 END;
 GO
 
+-- Procedure: Helper para listar compositores de faixa (suporte a req iii).
 CREATE PROCEDURE dbo.LISTAR_COMPOSITORES_FAIXA
     @param_cod_album INT,
     @param_numero_unidade TINYINT,
@@ -1179,6 +1245,7 @@ BEGIN
 END;
 GO
 
+-- Procedure: Helper para listar playlists (suporte a req ix).
 CREATE PROCEDURE dbo.LISTAR_PLAYLISTS
 AS
 BEGIN
@@ -1193,6 +1260,7 @@ BEGIN
 END;
 GO
 
+-- Procedure: Helper para listar faixas de playlist (suporte a req ix.b).
 CREATE PROCEDURE dbo.LISTAR_FAIXAS_PLAYLIST
     @param_cod_playlist INT
 AS
@@ -1221,6 +1289,9 @@ END;
 GO
 
 
+-- View: Atende à consulta (iii.a). Lista os álbuns com preço de compra maior que a média.
+-- Lógica: Filtra álbuns onde preço > (SELECT AVG(preco) FROM ALBUM).
+-- Uso no Backend: Chamada via routes/queries.py (consulta_albuns_acima_media).
 CREATE VIEW dbo.ALBUNS_ACIMA_MEDIA
 AS
 SELECT 
@@ -1238,6 +1309,9 @@ JOIN dbo.GRAVADORA grav ON alb.cod_gravadora = grav.cod_gravadora
 WHERE alb.preco_compra > (SELECT AVG(preco_compra) FROM dbo.ALBUM);
 GO
 
+-- View: Atende à consulta (iii.b). Lista gravadora com maior número de playlists com Dvorak.
+-- Lógica: Conta playlists distintas com Dvorak por gravadora e retorna a que tem MAX(count).
+-- Uso no Backend: Chamada via routes/queries.py (consulta_gravadora_dvorak).
 CREATE VIEW dbo.GRAVADORA_MAIS_PLAYLISTS_DVORAK
 AS
 SELECT 
@@ -1280,6 +1354,9 @@ HAVING COUNT(DISTINCT pf.cod_playlist) >= ALL (
 );
 GO
 
+-- View: Atende à consulta (iii.c). Lista compositor com maior número de faixas nas playlists.
+-- Lógica: Conta faixas em playlists por compositor e retorna o que tem MAX(count).
+-- Uso no Backend: Chamada via routes/queries.py (consulta_compositor_mais_faixas).
 CREATE VIEW dbo.COMPOSITOR_MAIS_FAIXAS_PLAYLISTS
 AS
 SELECT 
@@ -1304,6 +1381,9 @@ HAVING COUNT(*) >= ALL (
 );
 GO
 
+-- View: Atende à consulta (iii.d). Listar playlists cujas faixas são todas Concerto e Barroco.
+-- Lógica: Seleciona playlists onde NÃO existem faixas que (NÃO sejam Concerto OU NÃO sejam Barroco).
+-- Uso no Backend: Chamada via routes/queries.py (consulta_playlists_concerto_barroco).
 CREATE VIEW dbo.PLAYLISTS_CONCERTO_BARROCO
 AS
 SELECT 

@@ -1,18 +1,13 @@
-# backend/routes/queries.py
-# Rotas para Consultas Especiais (Views SQL)
-
 from flask import jsonify
 from routes import queries_bp
 from config.database import get_conexao
 
-
 @queries_bp.route('/albums-above-average', methods=['GET'])
 def consulta_albuns_acima_media():
-    """Requisito iii.a: Álbuns com preço acima da média."""
+    # Consulta (iii.a): Álbuns com preço de compra maior que a média geral
     conexao = get_conexao()
     cursor = conexao.cursor()
     cursor.execute("SELECT * FROM ALBUNS_ACIMA_MEDIA ORDER BY preco_compra DESC")
-    
     resultados = []
     row = cursor.fetchone()
     while row:
@@ -28,19 +23,16 @@ def consulta_albuns_acima_media():
             'media_geral': float(row[8]) if row[8] else None
         })
         row = cursor.fetchone()
-    
     cursor.close()
     conexao.close()
     return jsonify(resultados)
 
-
 @queries_bp.route('/label-most-dvorak-playlists', methods=['GET'])
 def consulta_gravadora_dvorak():
-    """Requisito iii.b: Gravadora com mais playlists com faixas de Dvorak."""
+    # Consulta (iii.b): Gravadora com mais playlists contendo faixas de Dvorak
     conexao = get_conexao()
     cursor = conexao.cursor()
     cursor.execute("SELECT * FROM GRAVADORA_MAIS_PLAYLISTS_DVORAK")
-    
     resultados = []
     row = cursor.fetchone()
     while row:
@@ -49,19 +41,16 @@ def consulta_gravadora_dvorak():
             'qtd_playlists': row[1]
         })
         row = cursor.fetchone()
-    
     cursor.close()
     conexao.close()
     return jsonify(resultados)
 
-
 @queries_bp.route('/composer-most-playlist-tracks', methods=['GET'])
 def consulta_compositor_mais_faixas():
-    """Requisito iii.c: Compositor com mais faixas em playlists."""
+    # Consulta (iii.c): Compositor com mais faixas nas playlists existentes
     conexao = get_conexao()
     cursor = conexao.cursor()
     cursor.execute("SELECT * FROM COMPOSITOR_MAIS_FAIXAS_PLAYLISTS")
-    
     resultados = []
     row = cursor.fetchone()
     while row:
@@ -70,19 +59,16 @@ def consulta_compositor_mais_faixas():
             'qtd_faixas_em_playlists': row[1]
         })
         row = cursor.fetchone()
-    
     cursor.close()
     conexao.close()
     return jsonify(resultados)
 
-
 @queries_bp.route('/playlists-concerto-barroco', methods=['GET'])
 def consulta_playlists_concerto_barroco():
-    """Requisito iii.d: Playlists com todas faixas Concerto e Barroco."""
+    # Consulta (iii.d): Playlists com TODAS faixas tipo Concerto e período Barroco
     conexao = get_conexao()
     cursor = conexao.cursor()
     cursor.execute("SELECT * FROM PLAYLISTS_CONCERTO_BARROCO ORDER BY nome_playlist")
-    
     resultados = []
     row = cursor.fetchone()
     while row:
@@ -93,18 +79,15 @@ def consulta_playlists_concerto_barroco():
             'tempo_total_execucao': row[3]
         })
         row = cursor.fetchone()
-    
     cursor.close()
     conexao.close()
     return jsonify(resultados)
 
-
 @queries_bp.route('/ddd-average', methods=['GET'])
 def obter_media_ddd():
-    """Retorna a média de preço dos álbuns com faixas DDD."""
+    # Restrição (d): Média de preço de álbuns DDD para validar preço máximo (3x)
     conexao = get_conexao()
     cursor = conexao.cursor()
-    
     cursor.execute("""
         SELECT AVG(a.preco_compra)
         FROM ALBUM a
@@ -116,7 +99,6 @@ def obter_media_ddd():
     """)
     row = cursor.fetchone()
     media = float(row[0]) if row and row[0] else 50.0
-    
     cursor.close()
     conexao.close()
     return jsonify({'media_ddd': media, 'max_permitido': media * 3})

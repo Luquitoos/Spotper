@@ -1,13 +1,13 @@
-// js/modals.js - Sistema de modais
 
 let currentModal = null;
-let currentEditData = null; // Store data when editing
-let playlistDraftTracks = []; // Tracks being added to playlist
+let currentEditData = null;
+let playlistDraftTracks = [];
+let albumDraftTracks = [];
+let savedAlbumFormData = null;
+let isAddingTrackToAlbum = false;
 
-/**
- * Dependency validation rules for each entity type
- * Returns { valid: boolean, message: string, action: string, actionModal: string }
- */
+window.isAddingTrackToAlbum = () => isAddingTrackToAlbum;
+
 function validateBeforeModal(modalName) {
     const state = typeof SpotPerState !== 'undefined' ? SpotPerState : null;
     const data = state?.cache || state?.data || {};
@@ -15,7 +15,7 @@ function validateBeforeModal(modalName) {
 
     switch (modalName) {
         case 'composer':
-            // Compositor needs a period to exist OR be selected
+
             if (data.periods?.length === 0 && !context.periodId) {
                 return {
                     valid: false,
@@ -27,7 +27,7 @@ function validateBeforeModal(modalName) {
             return { valid: true };
 
         case 'album':
-            // Album needs a gravadora (label) to exist
+
             if (data.labels?.length === 0) {
                 return {
                     valid: false,
@@ -39,7 +39,7 @@ function validateBeforeModal(modalName) {
             return { valid: true };
 
         case 'track':
-            // Track needs an album and tipo_composicao
+
             if (data.albums?.length === 0) {
                 return {
                     valid: false,
@@ -59,8 +59,7 @@ function validateBeforeModal(modalName) {
             return { valid: true };
 
         case 'playlist':
-            // Playlist can be created empty, but warn if no tracks exist
-            // This is optional - playlists can start empty
+
             return { valid: true };
 
         default:
@@ -68,9 +67,7 @@ function validateBeforeModal(modalName) {
     }
 }
 
-/**
- * Shows a validation message modal when action is blocked
- */
+
 function showValidationMessage(validation) {
     const overlay = document.getElementById('modal-overlay');
     const content = document.getElementById('modal-content');
@@ -102,9 +99,7 @@ function showValidationMessage(validation) {
     `;
 }
 
-/**
- * Abre um modal específico
- */
+
 async function openModal(modalName) {
     const overlay = document.getElementById('modal-overlay');
     const content = document.getElementById('modal-content');
@@ -114,7 +109,6 @@ async function openModal(modalName) {
         return;
     }
 
-    // Check dependencies before opening
     const validation = validateBeforeModal(modalName);
     if (!validation.valid) {
         showValidationMessage(validation);
@@ -133,7 +127,6 @@ async function openModal(modalName) {
         const html = await response.text();
         content.innerHTML = html;
 
-        // Inicializa componentes específicos do modal se necessário
         initModalComponents(modalName);
     } catch (err) {
         console.error("Erro ao carregar modal:", err);
@@ -148,9 +141,6 @@ async function openModal(modalName) {
     }
 }
 
-/**
- * Fecha o modal atual
- */
 function closeModal() {
     const overlay = document.getElementById('modal-overlay');
     if (!overlay) return;
@@ -163,13 +153,180 @@ function closeModal() {
         content.innerHTML = '';
     }
 
+    if (currentModal === 'album') {
+        albumDraftTracks = [];
+        savedAlbumFormData = null;
+    }
+
     currentModal = null;
-    currentEditData = null; // Reset edit data
+    currentEditData = null;
+    isAddingTrackToAlbum = false;
 }
 
-/**
- * Inicializa componentes específicos de cada modal
- */
+async function openTrackModalFromAlbum() {
+
+    const albumForm = document.getElementById('album-form');
+    if (albumForm) {
+        savedAlbumFormData = new FormData(albumForm);
+    }
+
+    isAddingTrackToAlbum = true;
+
+    const content = document.getElementById('modal-content');
+
+    try {
+        const response = await fetch('components/modals/track-modal.html');
+        if (!response.ok) throw new Error('Modal track não encontrado');
+        const html = await response.text();
+        content.innerHTML = html;
+        currentModal = 'track';
+
+        const trackForm = document.getElementById('track-form');
+        if (trackForm) {
+            trackForm.dataset.albumDraftMode = 'true';
+        }
+
+        initTrackModal();
+    } catch (err) {
+        console.error('Erro ao abrir modal de track:', err);
+    }
+}
+
+async function returnToAlbumModal() {
+    isAddingTrackToAlbum = false;
+
+    const content = document.getElementById('modal-content');
+
+    try {
+        const response = await fetch('components/modals/album-modal.html');
+        if (!response.ok) throw new Error('Modal album não encontrado');
+        const html = await response.text();
+        content.innerHTML = html;
+        currentModal = 'album';
+        initAlbumModal();
+
+        if (savedAlbumFormData) {
+            const albumForm = document.getElementById('album-form');
+            if (albumForm) {
+                for (const [key, value] of savedAlbumFormData.entries()) {
+                    const input = albumForm.querySelector(`[name="${key}"]`);
+                    if (input) {
+                        if (input.type === 'radio') {
+                            const radio = albumForm.querySelector(`[name="${key}"][value="${value}"]`);
+                            if (radio) radio.checked = true;
+                        } else {
+                            input.value = value;
+                        }
+                    }
+                }
+                const mediaType = savedAlbumFormData.get('tipo_midia');
+                if (mediaType) {
+                    document.querySelectorAll('.media-type-btn').forEach(btn => {
+                        if (btn.dataset.mediaType === mediaType) {
+                            btn.classList.add('bg-primary', 'text-white');
+                            btn.classList.remove('text-ink-muted');
+                        } else {
+                            btn.classList.remove('bg-primary', 'text-white');
+                            btn.classList.add('text-ink-muted');
+                        }
+                    });
+                }
+            }
+        }
+
+        renderAlbumDraftTracks();
+
+    } catch (err) {
+        console.error('Erro ao retornar ao modal de álbum:', err);
+    }
+}
+
+function renderAlbumDraftTracks() {
+    const container = document.getElementById('tracks-container');
+    const countEl = document.getElementById('track-count');
+    const addBtn = document.getElementById('btn-album-add-track');
+
+    if (addBtn) {
+        if (albumDraftTracks.length >= 64) {
+            addBtn.disabled = true;
+            addBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            addBtn.title = 'Limite máximo de 64 faixas atingido';
+        } else {
+            addBtn.disabled = false;
+            addBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            addBtn.title = '';
+        }
+    }
+
+    if (!container) return;
+
+    if (albumDraftTracks.length === 0) {
+        container.innerHTML = '';
+        if (countEl) countEl.textContent = '00 / 64';
+        return;
+    }
+
+    const compositionTypes = SpotPerState?.cache?.compositionTypes || [];
+    const composers = SpotPerState?.cache?.composers || [];
+    const interpreters = SpotPerState?.cache?.interpreters || [];
+
+    container.innerHTML = albumDraftTracks.map((track, idx) => {
+        const tipoComposicao = compositionTypes.find(t => t.cod_tipo_composicao == track.cod_tipo_composicao);
+        const tipoComposicaoDisplay = tipoComposicao?.descricao || track.tipo_composicao_texto || 'Tipo desconhecido';
+        const composerNames = (track.compositores || []).map(id => {
+            const c = composers.find(comp => comp.cod_compositor == id);
+            return c ? c.nome : id;
+        }).join(', ');
+
+        const recordingBadge = track.tipo_gravacao
+            ? `<span class="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded">${track.tipo_gravacao}</span>`
+            : '';
+
+        return `
+            <div class="flex items-center gap-3 group/track bg-white/5 dark:bg-black/20 p-3 rounded border border-transparent hover:border-primary/30 transition-all">
+                <span class="text-text-muted dark:text-[#8e8672] font-mono text-xs w-6 text-right font-bold">${(idx + 1).toString().padStart(2, '0')}</span>
+                <div class="flex-1 flex flex-col">
+                    <span class="text-ink-main dark:text-white font-display text-sm font-medium">${escapeHtml(track.descricao)}</span>
+                    <span class="text-ink-muted dark:text-[#8e8672] text-xs flex items-center gap-2">${escapeHtml(tipoComposicaoDisplay)} • ${formatTime(track.tempo_execucao)} ${recordingBadge}</span>
+                    ${composerNames ? `<span class="text-primary/70 text-xs mt-1">${escapeHtml(composerNames)}</span>` : ''}
+                </div>
+                <button type="button" onclick="removeAlbumDraftTrack(${idx})" 
+                        class="size-8 rounded border border-border-light dark:border-[#393528] bg-white dark:bg-[#23201a] text-text-muted hover:text-red-500 transition-colors flex items-center justify-center">
+                    <span class="material-symbols-outlined !text-[16px]">close</span>
+                </button>
+            </div>
+        `;
+    }).join('');
+
+    if (countEl) countEl.textContent = `${albumDraftTracks.length.toString().padStart(2, '0')} / 64`;
+}
+
+function removeAlbumDraftTrack(index) {
+    albumDraftTracks.splice(index, 1);
+    renderAlbumDraftTracks();
+}
+
+function formatTime(seconds) {
+    if (!seconds) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+function cancelTrackModal() {
+    if (isAddingTrackToAlbum) {
+        returnToAlbumModal();
+    } else {
+        closeModal();
+    }
+}
+
+
+window.openTrackModalFromAlbum = openTrackModalFromAlbum;
+window.returnToAlbumModal = returnToAlbumModal;
+window.removeAlbumDraftTrack = removeAlbumDraftTrack;
+window.cancelTrackModal = cancelTrackModal;
+
 function initModalComponents(modalName) {
     switch (modalName) {
         case 'album':
@@ -194,10 +351,8 @@ function initModalComponents(modalName) {
             initPeriodModal();
             break;
         case 'album-details':
-            // details modals are populated by app.js, so no init needed
             break;
         case 'playlist-details':
-            // details modals are populated by app.js, so no init needed
             break;
         case 'track':
             initTrackModal();
@@ -208,23 +363,20 @@ function initModalComponents(modalName) {
     }
 }
 
-/**
- * Inicializa o modal de álbum
- */
 function initAlbumModal() {
-    // Carrega gravadoras para o select
     loadGravadorasForSelect();
-
-    // Setup price validation for VALIDAR_PRECO_ALBUM
     setupAlbumPriceValidation();
+
+    if (!savedAlbumFormData) {
+        albumDraftTracks = [];
+    }
+    renderAlbumDraftTracks();
 
     const form = document.getElementById('album-form');
     if (!form) return;
 
-    // --- 1. Date Validation (> 01/01/2000) ---
     const dateInput = document.getElementById('album-data-gravacao');
     if (dateInput) {
-        // Set min attribute logic just in case
         dateInput.min = "2000-01-02";
 
         const validateDate = () => {
@@ -257,7 +409,6 @@ function initAlbumModal() {
         });
     }
 
-    // --- 2. Media Type & Units Logic ---
     const mediaButtons = document.querySelectorAll('.media-type-btn');
     const tipoMidiaInput = document.getElementById('album-tipo-midia');
     const qtdUnidadesContainer = document.getElementById('album-qtd-unidades-container');
@@ -265,19 +416,16 @@ function initAlbumModal() {
 
     mediaButtons.forEach(btn => {
         btn.addEventListener('click', function () {
-            // Unselect all
             mediaButtons.forEach(b => {
                 b.classList.remove('bg-primary', 'text-white');
                 b.classList.add('text-ink-muted');
             });
-            // Select clicked
             this.classList.add('bg-primary', 'text-white');
             this.classList.remove('text-ink-muted');
 
             const tipo = this.getAttribute('data-media-type');
             if (tipoMidiaInput) tipoMidiaInput.value = tipo;
 
-            // Logic: Download -> Units = 1, Hide Input
             if (qtdUnidadesContainer && qtdUnidadesInput) {
                 if (tipo === 'DOWNLOAD') {
                     qtdUnidadesContainer.style.display = 'none';
@@ -289,13 +437,11 @@ function initAlbumModal() {
         });
     });
 
-    // --- 3. Track Management (Migrated from dead inline script) ---
-    // Initialize track counter
+
     let trackCounter = 0;
     const tracksContainer = document.getElementById('tracks-container');
-    const addTrackBtn = document.querySelector('button[onclick="openModal(\'track\')"]'); // The button in the sidebar
+    const addTrackBtn = document.querySelector('button[onclick="openModal(\'track\')"]');
 
-    // Override the button action to add inline tracks instead of opening modal
     if (addTrackBtn) {
         addTrackBtn.removeAttribute('onclick');
         addTrackBtn.addEventListener('click', () => {
@@ -303,7 +449,6 @@ function initAlbumModal() {
         });
     }
 
-    // Function to add track row
     window.addAlbumTrackRow = (id) => {
         if (!tracksContainer) return;
 
@@ -338,7 +483,6 @@ function initAlbumModal() {
         tracksContainer.appendChild(trackDiv);
         updateAlbumTrackCount();
 
-        // Load composition types for this row
         const select = trackDiv.querySelector('select');
         loadCompositionTypesForSelectElement(select);
     };
@@ -360,7 +504,7 @@ function initAlbumModal() {
     };
 
     const renumberAlbumTracks = () => {
-        // Renumbering logic if needed
+
         const rows = tracksContainer.querySelectorAll('.group\\/track');
         rows.forEach((row, idx) => {
             const num = idx + 1;
@@ -371,7 +515,6 @@ function initAlbumModal() {
         });
     };
 
-    // --- 4. Edit Mode Population ---
     if (currentEditData) {
         const titleEl = document.querySelector('#album-form')?.closest('[class*="bg-"]')?.querySelector('h2');
         const submitBtn = document.querySelector('#album-form button[type="submit"], button[form="album-form"]');
@@ -396,7 +539,6 @@ function initAlbumModal() {
             const mediaBtn = form.querySelector(`[data-media-type="${currentEditData.tipo_midia}"]`);
             if (mediaBtn) mediaBtn.click();
 
-            // Block media type editing
             const hiddenInput = document.getElementById('album-tipo-midia');
             if (hiddenInput) {
                 mediaButtons.forEach(btn => {
@@ -404,7 +546,6 @@ function initAlbumModal() {
                     btn.classList.add('opacity-50', 'cursor-not-allowed');
                 });
 
-                // Show lock warning
                 const mediaContainer = document.querySelector('[data-media-type]')?.parentElement;
                 if (mediaContainer && !mediaContainer.querySelector('.media-lock-warning')) {
                     const warning = document.createElement('p');
@@ -415,7 +556,6 @@ function initAlbumModal() {
             }
         }
 
-        // Populate additional fields
         if (currentEditData.preco_compra) form.querySelector('[name="preco_compra"]').value = currentEditData.preco_compra;
         if (currentEditData.data_compra) form.querySelector('[name="data_compra"]').value = currentEditData.data_compra;
         if (currentEditData.data_gravacao) form.querySelector('[name="data_gravacao"]').value = currentEditData.data_gravacao;
@@ -426,13 +566,10 @@ function initAlbumModal() {
     }
 }
 
-/**
- * Helper to load composition types into a specific select element (for album rows)
- */
+
 async function loadCompositionTypesForSelectElement(select) {
     if (!select) return;
     try {
-        // Uses cache populated from API at app initialization
         const types = SpotPerState?.cache?.compositionTypes || [];
         select.innerHTML = '<option value="">Tipo composição</option>' +
             types.map(type => `<option value="${type.cod_tipo_composicao}">${type.descricao}</option>`).join('');
@@ -441,19 +578,13 @@ async function loadCompositionTypesForSelectElement(select) {
     }
 }
 
-/**
- * Configura validação de preço do álbum (VALIDAR_PRECO_ALBUM)
- * Preço não pode exceder 3x a média dos álbuns DDD
- */
 function setupAlbumPriceValidation() {
     const priceInput = document.getElementById('album-preco');
     if (!priceInput) return;
 
-    // Calculate average DDD price from cache
     const dddAverage = calculateDDDAveragePrice();
     const maxPrice = dddAverage * 3;
 
-    // Add price warning element if not exists
     let warningEl = document.getElementById('album-price-warning');
     if (!warningEl && priceInput.parentElement) {
         warningEl = document.createElement('p');
@@ -463,7 +594,6 @@ function setupAlbumPriceValidation() {
         priceInput.parentElement.appendChild(warningEl);
     }
 
-    // Add hint about max price
     let hintEl = document.getElementById('album-price-hint');
     if (!hintEl && priceInput.parentElement && dddAverage > 0) {
         hintEl = document.createElement('p');
@@ -484,7 +614,6 @@ function setupAlbumPriceValidation() {
         }
     });
 
-    // Form submit validation
     const form = document.getElementById('album-form');
     if (form) {
         form.addEventListener('submit', (e) => {
@@ -498,67 +627,50 @@ function setupAlbumPriceValidation() {
     }
 }
 
-/**
- * Cache para média DDD do backend
- */
 let cachedDDDAverage = null;
 
-/**
- * Busca a média DDD do backend (cacheada)
- */
 async function fetchDDDAverage() {
     if (cachedDDDAverage === null) {
         try {
             const result = await api.getDDDAverage();
-            cachedDDDAverage = result.media_ddd || 50;
+            cachedDDDAverage = result.media_ddd || 0;
         } catch {
-            cachedDDDAverage = 50;
+            cachedDDDAverage = 0;
         }
     }
     return cachedDDDAverage;
 }
 
-/**
- * Calcula a média de preços dos álbuns com faixas DDD (usa cache ou backend)
- */
+
 function calculateDDDAveragePrice() {
-    // Usa valor cacheado se disponível
     if (cachedDDDAverage !== null) {
         return cachedDDDAverage;
     }
 
-    // Fallback: calcular localmente
     const albums = SpotPerState?.cache?.albums || [];
     const dddAlbums = albums.filter(a => a.has_ddd_tracks || a.tipo_midia === 'CD');
 
     if (dddAlbums.length === 0) {
-        return 50; // R$ 50,00 default
+        return 0;
     }
 
     const total = dddAlbums.reduce((sum, a) => sum + (parseFloat(a.preco_compra) || 0), 0);
     return total / dddAlbums.length;
 }
 
-/**
- * Inicializa o modal de playlist
- */
+
 function initPlaylistModal() {
-    // Reset draft tracks
     playlistDraftTracks = [];
 
-    // Load available albums
     loadAlbumsForPlaylist();
 
-    // Update stats display
     updatePlaylistStats();
 
-    // If editing, populate with existing data
     if (currentEditData) {
         const nameInput = document.getElementById('playlist-name-input');
         if (nameInput && currentEditData.nome) {
             nameInput.value = currentEditData.nome;
         }
-        // Pre-load existing tracks if any
         if (currentEditData.tracks) {
             playlistDraftTracks = [...currentEditData.tracks];
             renderPlaylistDraftTracks();
@@ -566,33 +678,27 @@ function initPlaylistModal() {
         }
     }
 
-    // Bind save button
     const saveBtn = document.getElementById('playlist-save-btn');
     if (saveBtn) {
         saveBtn.onclick = savePlaylist;
     }
 }
 
-/**
- * Inicializa o modal de compositor
- */
+
 function initComposerModal() {
-    // Carrega períodos musicais para o select
+
     loadPeriodsForSelect();
 
-    // Auto-select period from context if set
     const context = typeof SpotPerState !== 'undefined' ? SpotPerState.context : null;
     if (context?.periodId) {
         const periodSelect = document.querySelector('select[name="cod_periodo"]');
         if (periodSelect) {
-            // Wait a bit for the options to load
             setTimeout(() => {
                 periodSelect.value = context.periodId;
             }, 100);
         }
     }
 
-    // If editing, populate with existing data
     if (currentEditData) {
         const titleEl = document.querySelector('#composer-form')?.closest('[class*="bg-"]')?.querySelector('h2');
         const submitBtn = document.querySelector('#composer-form button[type="submit"]');
@@ -621,11 +727,9 @@ function initComposerModal() {
     }
 }
 
-/**
- * Inicializa o modal de intérprete
- */
+
 function initInterpreterModal() {
-    // If editing, populate with existing data
+
     if (currentEditData) {
         const titleEl = document.querySelector('#interpreter-form')?.closest('div')?.querySelector('h2');
         const submitBtn = document.querySelector('#interpreter-form button[type="submit"]');
@@ -644,33 +748,30 @@ function initInterpreterModal() {
     }
 }
 
-/**
- * Inicializa o modal de gravadora com suporte a múltiplos telefones
- */
+
 function initLabelModal() {
-    // If editing, populate with existing data
+
     if (currentEditData) {
         const titleEl = document.querySelector('#label-form')?.closest('.bg-parchment, [class*="bg-"]')?.querySelector('h2');
         const submitBtn = document.querySelector('#label-form button[type="submit"]');
 
-        // Change title and button for edit mode
+
         if (titleEl) titleEl.textContent = 'Editar Gravadora';
         if (submitBtn) {
             submitBtn.innerHTML = '<span>Atualizar Gravadora</span><span class="material-symbols-outlined text-lg">save</span>';
         }
 
-        // Pre-fill form fields
+
         const form = document.getElementById('label-form');
         if (form) {
             if (currentEditData.nome) form.querySelector('[name="nome"]').value = currentEditData.nome;
             if (currentEditData.endereco) form.querySelector('[name="endereco"]').value = currentEditData.endereco;
             if (currentEditData.homepage) form.querySelector('[name="homepage"]').value = currentEditData.homepage;
 
-            // Load multiple phones if editing
             if (currentEditData.telefones && currentEditData.telefones.length > 0) {
                 const phonesList = document.getElementById('phones-list');
                 if (phonesList) {
-                    phonesList.innerHTML = ''; // Clear default
+                    phonesList.innerHTML = '';
                     currentEditData.telefones.forEach((tel, index) => {
                         addPhoneField(tel.numero, tel.tipo, index === 0);
                     });
@@ -682,12 +783,8 @@ function initLabelModal() {
     }
 }
 
-// Phone field counter
 let phoneFieldCount = 1;
 
-/**
- * Adiciona um novo campo de telefone
- */
 function addPhoneField(numero = '', tipo = '', isFirst = false) {
     const phonesList = document.getElementById('phones-list');
     if (!phonesList) return;
@@ -721,15 +818,12 @@ function addPhoneField(numero = '', tipo = '', isFirst = false) {
 
     phonesList.appendChild(phoneEntry);
 
-    // Enable first phone's remove button if more than one
     updatePhoneRemoveButtons();
 
     phoneFieldCount++;
 }
 
-/**
- * Remove um campo de telefone
- */
+
 function removePhoneField(button) {
     const phoneEntry = button.closest('.phone-entry');
     if (phoneEntry) {
@@ -738,9 +832,7 @@ function removePhoneField(button) {
     }
 }
 
-/**
- * Atualiza visibilidade dos botões de remover
- */
+
 function updatePhoneRemoveButtons() {
     const phonesList = document.getElementById('phones-list');
     if (!phonesList) return;
@@ -758,22 +850,18 @@ function updatePhoneRemoveButtons() {
     });
 }
 
-// Make phone functions globally available
 window.addPhoneField = addPhoneField;
 window.removePhoneField = removePhoneField;
 
-/**
- * Edita uma gravadora existente
- */
+
 async function editLabel(labelId) {
     try {
-        // Fetch fresh data from API
+
         const label = await api.getLabel(labelId);
         if (label) {
             openModalForEdit('label', labelId, label);
         }
     } catch (error) {
-        // Fallback to cache if API fails
         const labels = SpotPerState?.cache?.labels || [];
         const label = labels.find(l => l.cod_gravadora === labelId);
         if (label) {
@@ -782,31 +870,151 @@ async function editLabel(labelId) {
     }
 }
 
-// Make editLabel globally available
 window.editLabel = editLabel;
 
-/**
- * Inicializa o modal de lista de gravadoras
- * ATUALIZADO: Preenche ambos containers (light e dark mode)
- */
+async function openComposerEdit(compositorId) {
+    try {
+        const composers = SpotPerState?.cache?.composers || [];
+        const composer = composers.find(c => c.cod_compositor === compositorId);
+        if (!composer) {
+            console.error('Compositor não encontrado:', compositorId);
+            return;
+        }
+
+        currentEditData = composer;
+
+        const overlay = document.getElementById('modal-overlay');
+        const content = document.getElementById('modal-content');
+
+        if (!overlay || !content) return;
+
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+
+        const response = await fetch('components/modals/composer-modal.html');
+        if (!response.ok) throw new Error('Modal compositor não encontrado');
+        const html = await response.text();
+        content.innerHTML = html;
+        currentModal = 'composer';
+
+        initComposerModal();
+
+
+        setTimeout(() => {
+            const form = document.getElementById('composer-form');
+            if (!form) return;
+
+            const titleEl = form.closest('[class*="bg-"]')?.querySelector('h2');
+            if (titleEl) titleEl.textContent = 'Editar Compositor';
+
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                const label = submitBtn.querySelector('span.relative') || submitBtn;
+                if (label) label.textContent = 'Atualizar Compositor';
+            }
+
+            if (composer.nome) form.querySelector('[name="nome"]').value = composer.nome;
+            if (composer.cidade_nascimento) form.querySelector('[name="cidade_nascimento"]').value = composer.cidade_nascimento;
+            if (composer.pais_nascimento) form.querySelector('[name="pais_nascimento"]').value = composer.pais_nascimento;
+            if (composer.data_nascimento) form.querySelector('[name="data_nascimento"]').value = composer.data_nascimento;
+            if (composer.data_morte) form.querySelector('[name="data_morte"]').value = composer.data_morte;
+
+            const periodField = form.querySelector('[name="cod_periodo"]')?.closest('.flex.flex-col');
+            if (periodField) {
+                periodField.style.display = 'none';
+            }
+
+
+            const hiddenId = document.createElement('input');
+            hiddenId.type = 'hidden';
+            hiddenId.name = 'cod_compositor';
+            hiddenId.value = compositorId;
+            form.appendChild(hiddenId);
+        }, 100);
+
+    } catch (error) {
+        console.error('Erro ao abrir edição de compositor:', error);
+    }
+}
+
+async function openInterpreterEdit(interpreteId) {
+    try {
+        const interpreters = SpotPerState?.cache?.interpreters || [];
+        const interpreter = interpreters.find(i => i.cod_interprete === interpreteId);
+        if (!interpreter) {
+            console.error('Intérprete não encontrado:', interpreteId);
+            return;
+        }
+
+        currentEditData = interpreter;
+
+        const overlay = document.getElementById('modal-overlay');
+        const content = document.getElementById('modal-content');
+
+        if (!overlay || !content) return;
+
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+
+        const response = await fetch('components/modals/interpreter-modal.html');
+        if (!response.ok) throw new Error('Modal intérprete não encontrado');
+        const html = await response.text();
+        content.innerHTML = html;
+        currentModal = 'interpreter';
+
+        initInterpreterModal();
+
+        setTimeout(() => {
+            const form = document.getElementById('interpreter-form');
+            if (!form) return;
+
+            const titleEl = form.closest('[class*="bg-"]')?.querySelector('h2');
+            if (titleEl) titleEl.textContent = 'Editar Intérprete';
+
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                const label = submitBtn.querySelector('span.relative') || submitBtn;
+                if (label) label.textContent = 'Atualizar Intérprete';
+            }
+
+            if (interpreter.nome) form.querySelector('[name="nome"]').value = interpreter.nome;
+            if (interpreter.tipo) {
+                const tipoSelect = form.querySelector('[name="tipo"]');
+                if (tipoSelect) tipoSelect.value = interpreter.tipo;
+            }
+
+            const hiddenId = document.createElement('input');
+            hiddenId.type = 'hidden';
+            hiddenId.name = 'cod_interprete';
+            hiddenId.value = interpreteId;
+            form.appendChild(hiddenId);
+        }, 100);
+
+    } catch (error) {
+        console.error('Erro ao abrir edição de intérprete:', error);
+    }
+}
+
+window.openComposerEdit = openComposerEdit;
+window.openInterpreterEdit = openInterpreterEdit;
+
+
 async function initLabelListModal() {
     console.log('[Labels] Carregando lista...');
     try {
         const light = document.getElementById('labels-container');
         const dark = document.getElementById('labels-container-dark');
 
-        // Loading
         const loading = '<div class="col-span-full text-center py-12">Carregando...</div>';
         if (light) light.innerHTML = loading;
         if (dark) dark.innerHTML = loading;
 
-        // Fetch
+
         const labels = await api.listLabels();
         console.log('[Labels] Dados:', labels);
 
         SpotPerState.cache.labels = labels;
 
-        // Update counters
         const c1 = document.getElementById('labels-count');
         const c2 = document.getElementById('labels-count-dark');
         if (c1) c1.textContent = labels.length;
@@ -825,7 +1033,17 @@ async function initLabelListModal() {
                 <h3 class="text-2xl font-display font-bold text-text-main dark:text-white group-hover:text-primary transition-colors">${escapeHtml(l.nome)}</h3>
                 <div class="flex flex-col gap-3 mt-6">
                     ${l.endereco ? `<div class="flex items-start gap-3"><span class="material-symbols-outlined text-primary text-sm">location_on</span><p class="text-text-muted text-xs">${escapeHtml(l.endereco)}</p></div>` : ''}
-                    ${l.homepage ? `<div class="flex items-center gap-3"><span class="material-symbols-outlined text-primary text-sm">language</span><a href="${escapeHtml(l.homepage)}" target="_blank" class="text-text-muted text-xs hover:underline">${escapeHtml(l.homepage)}</a></div>` : ''}
+                    ${l.homepage ? `<div class="flex items-center gap-3"><span class="material-symbols-outlined text-primary text-sm">language</span><a href="${escapeHtml(l.homepage)}" target="_blank" class="text-text-muted text-xs hover:underline truncate">${escapeHtml(l.homepage)}</a></div>` : ''}
+                    ${l.telefones && l.telefones.length > 0 ? `
+                        <div class="flex flex-col gap-1 mt-1">
+                            ${l.telefones.map(t => `
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-primary text-sm">call</span>
+                                    <p class="text-text-muted text-xs font-mono">${escapeHtml(t.numero)} <span class="opacity-50 text-[10px] ml-1">(${t.tipo || 'Geral'})</span></p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
                 </div>
                 <button onclick="editLabel(${l.cod_gravadora})" class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 bg-primary text-background-dark p-2 rounded-full shadow-lg transition-all">
                     <span class="material-symbols-outlined !text-[18px]">edit</span>
@@ -847,11 +1065,9 @@ async function initLabelListModal() {
 }
 
 
-/**
- * Inicializa o modal de período
- */
+
 function initPeriodModal() {
-    // If editing, populate with existing data
+
     if (currentEditData) {
         const titleEl = document.querySelector('#period-form')?.closest('div')?.querySelector('h2');
         const submitBtn = document.querySelector('#period-form button[type="submit"], button[form="period-form"]');
@@ -875,12 +1091,10 @@ function initPeriodModal() {
     }
 }
 
-/**
- * Inicializa o modal de tipo de composição
- */
+
 function initCompositionTypeModal() {
     const form = document.getElementById('composition-type-form');
-    // If editing, populate with existing data
+
     if (currentEditData && form) {
         const titleEl = form.closest('.bg-white')?.querySelector('h3');
         const submitBtn = form.querySelector('button[type="submit"]');
@@ -900,7 +1114,6 @@ function initCompositionTypeModal() {
             const descricao = form.descricao.value.trim();
             if (!descricao) return;
 
-            // TODO: API call to save
             console.log('Salvar tipo de composição:', descricao);
             alert(`Tipo de composição "${descricao}" cadastrado/atualizado com sucesso!`);
             closeModal();
@@ -908,37 +1121,28 @@ function initCompositionTypeModal() {
     }
 }
 
-/**
- * Inicializa o modal de faixa com validações de trigger
- */
 function initTrackModal() {
-    // Clear chips selection state
     selectedComposers = [];
     selectedInterpreters = [];
 
-    // Load selects
     loadCompositionTypes();
     loadComposersForTrack();
     loadInterpretersForTrack();
 
-    // Set album ID from context
     const albumIdInput = document.getElementById('track-album-id');
     let parentAlbum = null;
 
     if (SpotPerState?.selection?.albumId) {
         if (albumIdInput) albumIdInput.value = SpotPerState.selection.albumId;
-        // Check 64 track limit
         checkTrackLimit(SpotPerState.selection.albumId);
 
-        // Find parent album to check media type
         if (SpotPerState.cache?.albums) {
             parentAlbum = SpotPerState.cache.albums.find(a => a.cod_album == SpotPerState.selection.albumId);
         }
+    } else if (isAddingTrackToAlbum) {
+        checkTrackLimit(null);
     }
 
-    // --- Business Rule: Recording Type based on Media Type ---
-    // Rule: CD -> Must be ADD or DDD.
-    // Rule: Vinyl/Download -> No recording type (None).
     const recordingTypeRadios = document.querySelectorAll('input[name="tipo_gravacao"]');
     const recordingContainer = document.getElementById('track-gravacao-container');
     const recordingInfo = document.getElementById('track-gravacao-info');
@@ -961,14 +1165,14 @@ function initTrackModal() {
         });
 
         if (!isCD) {
-            // If not CD, force "None" (empty value)
+
             if (noneRadio) noneRadio.checked = true;
 
             if (recordingContainer) recordingContainer.classList.add('opacity-50', 'pointer-events-none');
             if (recordingInfo) recordingInfo.classList.remove('hidden');
             if (recordingHint) recordingHint.style.display = 'none';
         } else {
-            // If CD, enable interactions
+
             if (recordingContainer) recordingContainer.classList.remove('opacity-50', 'pointer-events-none');
             if (recordingInfo) recordingInfo.classList.add('hidden');
             if (recordingHint) {
@@ -976,7 +1180,7 @@ function initTrackModal() {
                 recordingHint.textContent = '(obrigatório para CD)';
             }
 
-            // Ensure one is checked if none is (default to DDD)
+
             const checked = document.querySelector('input[name="tipo_gravacao"]:checked');
             if (!checked || checked.value === '') {
                 const ddd = document.querySelector('input[name="tipo_gravacao"][value="DDD"]');
@@ -985,7 +1189,7 @@ function initTrackModal() {
         }
     }
 
-    // Setup composer selection with Barroco check
+
     const composerSelect = document.getElementById('track-composer-select');
     if (composerSelect) {
         composerSelect.addEventListener('change', (e) => {
@@ -996,7 +1200,7 @@ function initTrackModal() {
         });
     }
 
-    // Setup interpreter selection
+
     const interpreterSelect = document.getElementById('track-interpreter-select');
     if (interpreterSelect) {
         interpreterSelect.addEventListener('change', (e) => {
@@ -1007,13 +1211,12 @@ function initTrackModal() {
         });
     }
 
-    // If editing, populate with existing data
+
     if (currentEditData) {
         const titleEl = document.querySelector('#track-form')?.closest('div')?.querySelector('div > span + span'); // Adjust selector as needed
         const submitBtn = document.getElementById('track-submit-btn');
 
-        // Note: Title might be harder to target specifically in track modal, so we'll rely on form population
-        // If we want to change title:
+
         const headerTitle = document.querySelector('#track-form')?.parentElement?.previousElementSibling?.querySelector('h3');
         if (headerTitle) headerTitle.textContent = 'Editar Faixa';
 
@@ -1027,13 +1230,13 @@ function initTrackModal() {
             if (currentEditData.numero_faixa) form.querySelector('[name="numero_faixa"]').value = currentEditData.numero_faixa;
             if (currentEditData.numero_unidade) form.querySelector('[name="numero_unidade"]').value = currentEditData.numero_unidade;
 
-            // Radio buttons for type
+
             if (currentEditData.tipo_gravacao) {
                 const radio = form.querySelector(`input[name="tipo_gravacao"][value="${currentEditData.tipo_gravacao}"]`);
                 if (radio) radio.checked = true;
             }
 
-            // Sync selects with timeouts to allow loading
+
             setTimeout(() => {
                 if (currentEditData.cod_tipo_composicao) {
                     const typeSelect = form.querySelector('[name="cod_tipo_composicao"]');
@@ -1041,10 +1244,8 @@ function initTrackModal() {
                 }
             }, 200);
 
-            // Populate chips (M:N)
-            // Expecting currentEditData.compositores = [{id: 1, nome: "Bach"}, ...]
             if (currentEditData.compositores) {
-                // Short wait to ensure DOM container is ready (though it should be)
+
                 setTimeout(() => {
                     currentEditData.compositores.forEach(c => {
                         addComposerChip(c.id || c.cod_compositor, c.nome);
@@ -1052,7 +1253,6 @@ function initTrackModal() {
                 }, 100);
             }
 
-            // Expecting currentEditData.interpretes = [{id: 1, nome: "Orquestra X"}, ...]
             if (currentEditData.interpretes) {
                 setTimeout(() => {
                     currentEditData.interpretes.forEach(i => {
@@ -1065,32 +1265,70 @@ function initTrackModal() {
         }
     }
 
-    // Form submit
     const form = document.getElementById('track-form');
     if (form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // Validate Barroco DDD rule
             if (!validateBarrocoDDD()) {
                 alert('Erro: Faixas com compositores do período Barroco devem ter tipo de gravação DDD.');
                 return;
             }
 
             const formData = new FormData(form);
-            console.log('Salvar/Atualizar faixa:', Object.fromEntries(formData));
 
-            if (selectedComposers.length === 0) {
-                // Optional warning?
+            let tempoExecucao = formData.get('tempo_execucao');
+            if (tempoExecucao && tempoExecucao.includes(':')) {
+                const parts = tempoExecucao.split(':');
+                tempoExecucao = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+            } else {
+                tempoExecucao = parseInt(tempoExecucao) || 0;
             }
 
-            alert(currentEditData ? 'Faixa atualizada com sucesso!' : 'Faixa cadastrada com sucesso!');
-            closeModal();
+            const compositionTypeId = formData.get('cod_tipo_composicao');
+            const compositionTypeText = formData.get('tipo_composicao_texto')?.trim();
+
+            let tipoGravacao = formData.get('tipo_gravacao');
+            if (tipoGravacao === '') tipoGravacao = null;
+
+            const trackData = {
+                descricao: formData.get('descricao'),
+                cod_tipo_composicao: compositionTypeId ? parseInt(compositionTypeId) : null,
+                tipo_composicao_texto: compositionTypeText,
+                tipo_gravacao: tipoGravacao,
+                tempo_execucao: tempoExecucao,
+                numero_unidade: parseInt(formData.get('numero_unidade')) || 1,
+                numero_faixa: parseInt(formData.get('numero_faixa')) || (albumDraftTracks.length + 1),
+                compositores: [...selectedComposers],
+                interpretes: [...selectedInterpreters]
+            };
+
+            console.log('Track data:', trackData);
+
+            if (isAddingTrackToAlbum) {
+                if (!trackData.descricao || (!trackData.cod_tipo_composicao && !trackData.tipo_composicao_texto)) {
+                    alert('Preencha todos os campos obrigatórios (descrição e tipo de composição).');
+                    return;
+                }
+                e.stopImmediatePropagation();
+
+                albumDraftTracks.push(trackData);
+                console.log('Track added to album draft:', albumDraftTracks);
+
+                returnToAlbumModal();
+                return;
+            } else {
+
+                if (selectedComposers.length === 0) {
+                }
+
+                alert(currentEditData ? 'Faixa atualizada com sucesso!' : 'Faixa cadastrada com sucesso!');
+                closeModal();
+            }
         });
     }
 }
 
-// Track modal helper functions
 let selectedComposers = [];
 let selectedInterpreters = [];
 
@@ -1098,8 +1336,13 @@ function loadComposersForTrack() {
     const select = document.getElementById('track-composer-select');
     if (!select) return;
 
-    // TODO: Fetch from API - GET /api/compositores
-    const composers = SpotPerState?.cache?.composers || [];
+    let composers = SpotPerState?.cache?.composers || [];
+
+
+    const selectedPeriod = SpotPerState?.filters?.periodId;
+    if (selectedPeriod) {
+        composers = composers.filter(c => c.cod_periodo === selectedPeriod);
+    }
 
     select.innerHTML = '<option value="">Selecionar compositor...</option>' +
         composers.map(c => `<option value="${c.cod_compositor}" data-period="${c.cod_periodo}">${c.nome}</option>`).join('');
@@ -1109,7 +1352,7 @@ function loadInterpretersForTrack() {
     const select = document.getElementById('track-interpreter-select');
     if (!select) return;
 
-    // TODO: Fetch from API - GET /api/interpretes
+
     const interpreters = SpotPerState?.cache?.interpreters || [];
 
     select.innerHTML = '<option value="">Selecionar intérprete...</option>' +
@@ -1127,14 +1370,14 @@ function addComposerChip(id, name) {
     chip.className = 'flex items-center gap-1 bg-[#f5f3f0] dark:bg-[#1a1814] pl-3 pr-2 py-1 rounded-md border border-transparent dark:border-[#d4af37]/30 transition-colors';
     chip.dataset.composerId = id;
     chip.innerHTML = `
-        <span class="text-[#181611] dark:text-parchment-white text-sm font-medium">${name}</span>
+        <span class="text-[#181611] dark:text-white text-sm font-medium">${name}</span>
         <button onclick="removeComposerChip(${id})" class="text-[#8a8060] hover:text-red-500 flex items-center" type="button">
             <span class="material-symbols-outlined text-[16px]">close</span>
         </button>
     `;
     container.appendChild(chip);
 
-    // Check if Barroco and show warning
+
     checkBarrocoComposer(id);
 }
 
@@ -1156,7 +1399,7 @@ function addInterpreterChip(id, name) {
     chip.className = 'flex items-center gap-1 bg-[#f5f3f0] dark:bg-[#1a1814] pl-3 pr-2 py-1 rounded-md border border-transparent dark:border-[#d4af37]/30 transition-colors';
     chip.dataset.interpreterId = id;
     chip.innerHTML = `
-        <span class="text-[#181611] dark:text-parchment-white text-sm font-medium">${name}</span>
+        <span class="text-[#181611] dark:text-white text-sm font-medium">${name}</span>
         <button onclick="removeInterpreterChip(${id})" class="text-[#8a8060] hover:text-red-500 flex items-center" type="button">
             <span class="material-symbols-outlined text-[16px]">close</span>
         </button>
@@ -1171,16 +1414,16 @@ function removeInterpreterChip(id) {
 }
 
 function checkBarrocoComposer(composerId) {
-    // Check if composer is from Barroco period (cod_periodo = 1 assumed)
+
     const select = document.getElementById('track-composer-select');
     const option = select?.querySelector(`option[value="${composerId}"]`);
     const periodId = option?.dataset?.period;
 
-    if (periodId === '1') { // Barroco
+    if (periodId === '1') {
         const warning = document.getElementById('track-composer-barroco-warn');
         if (warning) warning.classList.remove('hidden');
 
-        // Force DDD selection
+
         const dddRadio = document.querySelector('input[name="tipo_gravacao"][value="DDD"]');
         if (dddRadio) dddRadio.checked = true;
 
@@ -1194,7 +1437,7 @@ function checkBarrocoComposer(composerId) {
 }
 
 function updateBarrocoWarning() {
-    // Check if any remaining composer is Barroco
+
     const hasBarroco = selectedComposers.some(id => {
         const option = document.querySelector(`#track-composer-select option[value="${id}"]`);
         return option?.dataset?.period === '1';
@@ -1223,9 +1466,14 @@ function validateBarrocoDDD() {
 }
 
 function checkTrackLimit(albumId) {
-    // TODO: Get actual track count from album
-    const album = SpotPerState?.cache?.albums?.find(a => a.cod_album === albumId);
-    const trackCount = album?.qtd_faixas || 0;
+    let trackCount = 0;
+
+    if (isAddingTrackToAlbum) {
+        trackCount = albumDraftTracks ? albumDraftTracks.length : 0;
+    } else if (albumId) {
+        const album = SpotPerState?.cache?.albums?.find(a => a.cod_album === parseInt(albumId));
+        trackCount = album?.qtd_faixas || 0;
+    }
 
     if (trackCount >= 64) {
         const alert = document.getElementById('track-alert-limit');
@@ -1243,24 +1491,21 @@ function checkTrackLimit(albumId) {
     }
 }
 
-// Make track functions globally available
 window.addComposerChip = addComposerChip;
 window.removeComposerChip = removeComposerChip;
 window.addInterpreterChip = addInterpreterChip;
 window.removeInterpreterChip = removeInterpreterChip;
+window.getSelectedComposers = () => selectedComposers;
+window.getSelectedInterpreters = () => selectedInterpreters;
+window.getPlaylistDraftTracks = () => playlistDraftTracks;
 
-/**
- * Carrega gravadoras para select
- */
+
 async function loadGravadorasForSelect() {
     try {
-        // TODO: Substituir por chamada real da API
-        // const labels = await api.listLabels();
 
         const select = document.querySelector('#label-select, select[name="cod_gravadora"]');
         if (!select) return;
 
-        // TODO: Fetch from API - GET /api/gravadoras
         const labels = SpotPerState?.cache?.labels || [];
 
         select.innerHTML = labels.map(label =>
@@ -1271,18 +1516,13 @@ async function loadGravadorasForSelect() {
     }
 }
 
-/**
- * Carrega períodos musicais para select
- */
+
 async function loadPeriodsForSelect() {
     try {
-        // TODO: Substituir por chamada real da API
-        // const periods = await api.listPeriods();
 
         const select = document.querySelector('#period-select, select[name="cod_periodo"]');
         if (!select) return;
 
-        // TODO: Fetch from API - GET /api/periodos
         const periods = SpotPerState?.cache?.periods || [];
 
         select.innerHTML = periods.map(period =>
@@ -1293,37 +1533,63 @@ async function loadPeriodsForSelect() {
     }
 }
 
-/**
- * Carrega tipos de composição
- */
+
 async function loadCompositionTypes() {
     try {
-        // TODO: Substituir por chamada real da API
-        // const types = await api.listCompositionTypes();
+        const datalist = document.getElementById('tipo-composicao-list');
+        const input = document.getElementById('track-tipo-composicao-input');
+        const hiddenInput = document.getElementById('track-tipo-composicao');
 
-        const select = document.querySelector('#composition-type-select, select[name="cod_tipo_composicao"]');
-        if (!select) return;
+        if (!datalist) return;
 
-        // TODO: Fetch from API - GET /api/tipos-composicao
+
         const types = SpotPerState?.cache?.compositionTypes || [];
 
-        select.innerHTML = types.map(type =>
-            `<option value="${type.cod_tipo_composicao}">${type.descricao}</option>`
+
+        datalist.innerHTML = types.map(type =>
+            `<option value="${type.descricao}" data-id="${type.cod_tipo_composicao}">`
         ).join('');
+
+
+        if (input && hiddenInput) {
+            input.addEventListener('input', () => {
+                const inputValue = input.value.trim();
+                const matchingType = types.find(t =>
+                    t.descricao.toLowerCase() === inputValue.toLowerCase()
+                );
+
+                if (matchingType) {
+                    hiddenInput.value = matchingType.cod_tipo_composicao;
+                } else {
+
+                    hiddenInput.value = '';
+                }
+            });
+
+
+            input.addEventListener('blur', () => {
+                const inputValue = input.value.trim();
+                const matchingType = types.find(t =>
+                    t.descricao.toLowerCase() === inputValue.toLowerCase()
+                );
+
+                if (matchingType) {
+                    hiddenInput.value = matchingType.cod_tipo_composicao;
+                    input.value = matchingType.descricao; // Normalize casing
+                }
+            });
+        }
     } catch (error) {
         console.error('Erro ao carregar tipos de composição:', error);
     }
 }
 
-/**
- * Carrega álbuns para seleção em playlist
- */
+
 async function loadAlbumsForPlaylist() {
     const grid = document.getElementById('playlist-albums-grid');
     const countEl = document.getElementById('playlist-albums-count');
     if (!grid) return;
 
-    // Get albums from state (SpotPerState.data.albums from app.js)
     const albums = (typeof SpotPerState !== 'undefined' && SpotPerState.data.albums) || [];
 
     if (countEl) {
@@ -1356,9 +1622,6 @@ async function loadAlbumsForPlaylist() {
     `).join('');
 }
 
-/**
- * Seleciona um álbum e mostra suas faixas (carrega do backend)
- */
 async function selectAlbumForPlaylist(albumId) {
     const grid = document.getElementById('playlist-albums-grid');
     if (!grid) return;
@@ -1367,7 +1630,6 @@ async function selectAlbumForPlaylist(albumId) {
     const album = albums.find(a => a.cod_album === albumId);
     if (!album) return;
 
-    // Fetch tracks from API
     let tracks = [];
     try {
         tracks = await api.getAlbumTracks(albumId);
@@ -1375,11 +1637,9 @@ async function selectAlbumForPlaylist(albumId) {
         console.error('Erro ao carregar faixas:', error);
     }
 
-    // Create expanded album card with tracks
     const albumCards = grid.querySelectorAll('button');
     albumCards.forEach(card => card.classList.remove('hidden'));
 
-    // Insert expanded view after the selected album
     const existingExpanded = grid.querySelector('.album-expanded');
     if (existingExpanded) existingExpanded.remove();
 
@@ -1438,9 +1698,6 @@ async function selectAlbumForPlaylist(albumId) {
     grid.insertAdjacentHTML('beforeend', expandedHtml);
 }
 
-/**
- * Collapse album expanded view
- */
 function collapseAlbumForPlaylist() {
     const grid = document.getElementById('playlist-albums-grid');
     if (!grid) return;
@@ -1448,11 +1705,7 @@ function collapseAlbumForPlaylist() {
     if (expanded) expanded.remove();
 }
 
-/**
- * Add track to playlist draft
- */
 function addTrackToDraft(track, album) {
-    // Check if already in draft using composite key
     const exists = playlistDraftTracks.some(t =>
         t.cod_album === track.cod_album &&
         t.numero_unidade === track.numero_unidade &&
@@ -1470,16 +1723,12 @@ function addTrackToDraft(track, album) {
     renderPlaylistDraftTracks();
     updatePlaylistStats();
 
-    // Refresh the album expanded view to update button states
     const expandedAlbum = document.querySelector('.album-expanded');
     if (expandedAlbum) {
         selectAlbumForPlaylist(album.cod_album);
     }
 }
 
-/**
- * Remove track from playlist draft (usando chave composta)
- */
 function removeTrackFromDraft(codAlbum, numeroUnidade, numeroFaixa) {
     const trackIndex = playlistDraftTracks.findIndex(t =>
         t.cod_album === codAlbum &&
@@ -1492,7 +1741,6 @@ function removeTrackFromDraft(codAlbum, numeroUnidade, numeroFaixa) {
         renderPlaylistDraftTracks();
         updatePlaylistStats();
 
-        // Refresh the album expanded view if open
         const expandedAlbum = document.querySelector('.album-expanded');
         if (expandedAlbum && removedTrack.cod_album) {
             selectAlbumForPlaylist(removedTrack.cod_album);
@@ -1500,9 +1748,7 @@ function removeTrackFromDraft(codAlbum, numeroUnidade, numeroFaixa) {
     }
 }
 
-/**
- * Render the selected tracks in the draft panel
- */
+
 function renderPlaylistDraftTracks() {
     const container = document.getElementById('playlist-selected-tracks');
     if (!container) return;
@@ -1538,9 +1784,6 @@ function renderPlaylistDraftTracks() {
     }).join('');
 }
 
-/**
- * Update playlist stats (time and count)
- */
 function updatePlaylistStats() {
     const countEl = document.getElementById('playlist-track-count');
     const timeEl = document.getElementById('playlist-total-time');
@@ -1549,10 +1792,11 @@ function updatePlaylistStats() {
     const count = playlistDraftTracks.length;
     if (countEl) countEl.textContent = String(count).padStart(2, '0');
 
-    // Calculate total time
     let totalSeconds = 0;
     playlistDraftTracks.forEach(track => {
-        if (track.duracao) {
+        if (track.tempo_execucao) {
+            totalSeconds += parseFloat(track.tempo_execucao);
+        } else if (track.duracao) {
             const parts = track.duracao.split(':');
             if (parts.length === 2) {
                 totalSeconds += parseInt(parts[0]) * 60 + parseInt(parts[1]);
@@ -1564,7 +1808,6 @@ function updatePlaylistStats() {
     const secs = totalSeconds % 60;
     if (timeEl) timeEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
-    // Update progress circle (assume max 90 mins = 100%)
     if (progressEl) {
         const maxMins = 90;
         const percentage = Math.min((mins / maxMins) * 100, 100);
@@ -1574,9 +1817,6 @@ function updatePlaylistStats() {
     }
 }
 
-/**
- * Save playlist via API
- */
 async function savePlaylist() {
     const nameInput = document.getElementById('playlist-name-input');
     const name = nameInput?.value?.trim();
@@ -1603,7 +1843,13 @@ async function savePlaylist() {
             }))
         };
 
-        await api.createPlaylist(playlistData);
+        // Use PUT if editing, POST if creating new
+        if (currentEditData && currentEditData.id) {
+            await api.updatePlaylist(currentEditData.id, playlistData);
+        } else {
+            await api.createPlaylist(playlistData);
+        }
+
         SpotPerState.cache.playlists = await api.listPlaylists().catch(() => SpotPerState.cache.playlists);
 
         if (typeof renderAll === 'function') renderAll();
@@ -1617,22 +1863,17 @@ async function savePlaylist() {
     }
 }
 
-/**
- * Opens a modal for editing an existing item
- */
 async function openModalForEdit(modalName, id, data) {
     currentEditData = { id, ...data };
     await openModal(modalName);
 }
 
-// Make functions globally available
 window.selectAlbumForPlaylist = selectAlbumForPlaylist;
 window.collapseAlbumForPlaylist = collapseAlbumForPlaylist;
 window.addTrackToDraft = addTrackToDraft;
 window.removeTrackFromDraft = removeTrackFromDraft;
 window.openModalForEdit = openModalForEdit;
 
-// Fechar modal ao clicar fora
 document.addEventListener('click', (e) => {
     const overlay = document.getElementById('modal-overlay');
     if (overlay && e.target.id === 'modal-overlay') {
@@ -1640,7 +1881,6 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Fechar modal com ESC
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && currentModal) {
         closeModal();

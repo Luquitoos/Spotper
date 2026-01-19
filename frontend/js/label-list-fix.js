@@ -1,37 +1,23 @@
-/**
- * Inicializa o modal de lista de gravadoras
- * IMPORTANTE: Atualiza ambos os containers (light e dark mode)
- */
 async function initLabelListModal() {
     console.log('[Label List] Iniciando modal de gravadoras...');
     try {
         const labelsContainer = document.getElementById('labels-container');
         const labelsContainerDark = document.getElementById('labels-container-dark');
-
         if (!labelsContainer && !labelsContainerDark) {
             console.error('[Label List] Nenhum container encontrado!');
             return;
         }
-
-        // Show loading state
         const loadingHTML = '<div class="col-span-full text-center py-12 text-ink-muted">Carregando gravadoras...</div>';
         if (labelsContainer) labelsContainer.innerHTML = loadingHTML;
         if (labelsContainerDark) labelsContainerDark.innerHTML = loadingHTML;
-
-        // Fetch fresh data from API
         console.log('[Label List] Buscando gravadoras da API...');
         const labels = await api.listLabels();
         console.log('[Label List] Gravadoras recebidas:', labels);
-
-        // Update cache
         SpotPerState.cache.labels = labels;
-
-        // Update counters
         const countEl = document.getElementById('labels-count');
         const countElDark = document.getElementById('labels-count-dark');
         if (countEl) countEl.textContent = labels.length;
         if (countElDark) countElDark.textContent = labels.length;
-
         if (labels.length === 0) {
             console.warn('[Label List] Nenhuma gravadora encontrada');
             const emptyHTML = '<div class="col-span-full text-center py-12 text-ink-muted">Nenhuma gravadora cadastrada.</div>';
@@ -39,7 +25,6 @@ async function initLabelListModal() {
             if (labelsContainerDark) labelsContainerDark.innerHTML = emptyHTML;
             return;
         }
-
         console.log('[Label List] Renderizando', labels.length, 'gravadoras...');
         const labelsHTML = labels.map(label => `
             <div class="flex flex-col bg-white dark:bg-[#1f1f1f] rounded-lg border border-stone-200 dark:border-stone-800 shadow-sm hover:border-primary transition-all p-6 relative group">
@@ -65,7 +50,6 @@ async function initLabelListModal() {
                 </button>
             </div>
         `).join('');
-
         if (labelsContainer) labelsContainer.innerHTML = labelsHTML;
         if (labelsContainerDark) labelsContainerDark.innerHTML = labelsHTML;
         console.log('[Label List] Renderização completa!');

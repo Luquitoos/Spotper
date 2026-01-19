@@ -1,51 +1,51 @@
-# backend/routes/labels.py
-# Rotas para Gravadoras
-
 from flask import request, jsonify
 from routes import labels_bp
 from config.database import get_conexao
 
-
 @labels_bp.route('', methods=['GET'])
 def listar_gravadoras():
-    """Lista todas as gravadoras."""
+    # Req (viii): Lista gravadoras com código, nome, endereço, telefones e homepage
     conexao = get_conexao()
     cursor = conexao.cursor()
     cursor.execute("SELECT cod_gravadora, nome, endereco, homepage FROM GRAVADORA ORDER BY nome")
-    
     gravadoras = []
     row = cursor.fetchone()
     while row:
-        gravadoras.append({
+        gravadora = {
             'cod_gravadora': row[0],
             'nome': row[1],
             'endereco': row[2],
-            'homepage': row[3]
-        })
+            'homepage': row[3],
+            'telefones': []
+        }
+        gravadoras.append(gravadora)
         row = cursor.fetchone()
-    
+    for g in gravadoras:
+        cursor.execute("SELECT telefone, tipo_telefone FROM TELEFONE_GRAVADORA WHERE cod_gravadora = ?", (g['cod_gravadora'],))
+        phone_rows = cursor.fetchall()
+        for pr in phone_rows:
+            g['telefones'].append({
+                'numero': pr[0],
+                'tipo': pr[1]
+            })
     cursor.close()
     conexao.close()
     return jsonify(gravadoras)
 
-
 @labels_bp.route('/<int:cod_gravadora>', methods=['GET'])
 def obter_gravadora(cod_gravadora):
-    """Obtém uma gravadora com seus telefones."""
+    # Obtém uma gravadora com seus telefones
     conexao = get_conexao()
     cursor = conexao.cursor()
-    
     cursor.execute("""
         SELECT cod_gravadora, nome, endereco, homepage 
         FROM GRAVADORA WHERE cod_gravadora = ?
     """, (cod_gravadora,))
     row = cursor.fetchone()
-    
     if not row:
         cursor.close()
         conexao.close()
         return jsonify({'error': True, 'message': 'Gravadora não encontrada'}), 404
-    
     gravadora = {
         'cod_gravadora': row[0],
         'nome': row[1],
@@ -53,12 +53,10 @@ def obter_gravadora(cod_gravadora):
         'homepage': row[3],
         'telefones': []
     }
-    
     cursor.execute("""
         SELECT telefone, tipo_telefone 
         FROM TELEFONE_GRAVADORA WHERE cod_gravadora = ?
     """, (cod_gravadora,))
-    
     row = cursor.fetchone()
     while row:
         gravadora['telefones'].append({
@@ -66,35 +64,26 @@ def obter_gravadora(cod_gravadora):
             'tipo': row[1]
         })
         row = cursor.fetchone()
-    
     cursor.close()
     conexao.close()
     return jsonify(gravadora)
 
-
 @labels_bp.route('', methods=['POST'])
 def criar_gravadora():
-    """Cria uma nova gravadora com telefones."""
+    # Req (viii): Cria gravadora com nome, endereço, homepage e telefones
     dados = request.get_json()
-    
     conexao = get_conexao()
     cursor = conexao.cursor()
-    
     try:
-        # Use OUTPUT clause to get the inserted ID directly
         cursor.execute("""
             INSERT INTO GRAVADORA (nome, endereco, homepage) 
-            OUTPUT INSERTED.cod_gravadora
             VALUES (?, ?, ?)
         """, (dados['nome'], dados.get('endereco'), dados.get('homepage')))
-        
+        cursor.execute("SELECT @@IDENTITY")
         result = cursor.fetchone()
-        
         if result is None or result[0] is None:
             raise Exception("Falha ao obter ID da gravadora criada")
-        
-        cod_gravadora = result[0]
-        
+        cod_gravadora = int(result[0])
         telefones = dados.get('telefones', [])
         for tel in telefones:
             if tel.get('numero'):
@@ -102,11 +91,9 @@ def criar_gravadora():
                     INSERT INTO TELEFONE_GRAVADORA (cod_gravadora, telefone, tipo_telefone) 
                     VALUES (?, ?, ?)
                 """, (cod_gravadora, tel['numero'], tel.get('tipo')))
-        
         conexao.commit()
         cursor.close()
         conexao.close()
-        
         return jsonify({'success': True, 'cod_gravadora': cod_gravadora}), 201
     except Exception as e:
         conexao.rollback()
@@ -114,27 +101,22 @@ def criar_gravadora():
         conexao.close()
         return jsonify({'error': True, 'message': str(e)}), 400
 
-
 @labels_bp.route('/<int:cod_gravadora>', methods=['PUT'])
 def atualizar_gravadora(cod_gravadora):
-    """Atualiza uma gravadora e seus telefones."""
+    # Atualiza uma gravadora e seus telefones
     dados = request.get_json()
-    
     conexao = get_conexao()
     cursor = conexao.cursor()
-    
     try:
         cursor.execute("SELECT 1 FROM GRAVADORA WHERE cod_gravadora = ?", (cod_gravadora,))
         if not cursor.fetchone():
             cursor.close()
             conexao.close()
             return jsonify({'error': True, 'message': 'Gravadora não encontrada'}), 404
-        
         cursor.execute("""
             UPDATE GRAVADORA SET nome = ?, endereco = ?, homepage = ?
             WHERE cod_gravadora = ?
         """, (dados.get('nome'), dados.get('endereco'), dados.get('homepage'), cod_gravadora))
-        
         if 'telefones' in dados:
             cursor.execute("DELETE FROM TELEFONE_GRAVADORA WHERE cod_gravadora = ?", (cod_gravadora,))
             for tel in dados['telefones']:
@@ -143,7 +125,6 @@ def atualizar_gravadora(cod_gravadora):
                         INSERT INTO TELEFONE_GRAVADORA (cod_gravadora, telefone, tipo_telefone)
                         VALUES (?, ?, ?)
                     """, (cod_gravadora, tel['numero'], tel.get('tipo')))
-        
         conexao.commit()
         cursor.close()
         conexao.close()
